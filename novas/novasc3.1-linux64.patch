@@ -1,0 +1,48 @@
+diff -rbU3 Cdist.orig/eph_manager.c Cdist/eph_manager.c
+--- Cdist.orig/eph_manager.c	2019-03-03 14:13:06.555531500 -0800
++++ Cdist/eph_manager.c	2019-03-03 14:15:57.504208200 -0800
+@@ -234,6 +234,8 @@
+             break;
+          case 403: case 405:
+          case 421:
++         case 430:
++         case 431:
+             RECORD_LENGTH = 8144;
+             break;
+          case 404: case 406:
+@@ -321,6 +323,7 @@
+    if (EPHFILE)
+    {
+       error =  (short int) fclose (EPHFILE);
++      EPHFILE = NULL; // new line, reset pointer
+       free (BUFFER);
+    }
+    return error;
+diff -rbU3 Cdist.orig/novas.c Cdist/novas.c
+--- Cdist.orig/novas.c	2019-03-03 14:13:06.566442600 -0800
++++ Cdist/novas.c	2019-03-03 14:14:13.948448400 -0800
+@@ -3128,7 +3128,7 @@
+    For mean sidereal time, subtract the equation of the equinoxes.
+ */
+ 
+-         ha_eq -= (eqeq / 240.0);
++         ha_eq -= (eqeq / 3600.0);
+ 
+          ha_eq = fmod (ha_eq, 360.0) / 15.0;
+          if (ha_eq < 0.0)
+diff -rbU3 Cdist.orig/readeph0.c Cdist/readeph0.c
+--- Cdist.orig/readeph0.c	2019-03-03 14:13:06.574379500 -0800
++++ Cdist/readeph0.c	2019-03-03 14:14:13.955979500 -0800
+@@ -94,9 +94,9 @@
+    formal parameter" compiler warnings.
+ */
+ 
+-   mp;
+-   name;
+-   jd;
++   (void)mp;
++   (void)name;
++   (void)jd;
+ 
+    pv = (double *) malloc (6L * sizeof (double));
+ 
