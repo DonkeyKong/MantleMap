@@ -25,6 +25,9 @@
 
 #include "SolarScene.hpp"
 
+static const char degChar[] {0xB0, 0x00};
+static const std::string deg(degChar);
+
 SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetime::Manual),
   _solarLine(map), _horizonLine(map), _sunCircle(map), _lunarLine(map), _moonCircle(map),
   _tempLabel(map), _sunriseLabel(map), _sunsetLabel(map)
@@ -66,7 +69,9 @@ SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetim
   _lunarLine.SetThickness(1.5f);
   _solarLine.SetThickness(2.0f);
   
-   _noaaTemp = "noaa";
+  
+  
+  _noaaTemp = std::string("69") + deg + "C";
 //   _exitTempUpdateThread = false;
 //   _tempUpdateThread = std::make_shared<std::thread>([&]()
 //   { 
@@ -287,7 +292,7 @@ void SolarScene::updateOverride()
   
   
   _tempLabel.SetText(_noaaTemp);
-  _tempLabel.SetFontStyle(FontStyle::Narrow);
+  _tempLabel.SetFontStyle(FontStyle::Regular);
   _tempLabel.SetColor(0.5,0.5,0.5f,1.0f);
   _tempLabel.SetPosition(4, 4);
 }
