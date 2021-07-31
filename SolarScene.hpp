@@ -11,6 +11,8 @@
 #include "Scene.hpp"
 #include "MapState.hpp"
 
+#include <thread>
+
 class SolarScene : public Scene
 {
  public:
@@ -27,6 +29,10 @@ protected:
     
 private:
     
+    std::string _noaaTemp;
+    bool _exitTempUpdateThread;
+    //std::shared_ptr<std::thread> _tempUpdateThread;
+    
     Color _moonColorDay;
     Color _moonColorNight;
     Color _sunColorDay;
@@ -42,6 +48,7 @@ private:
     
     TextLabel _sunriseLabel;
     TextLabel _sunsetLabel;
+    TextLabel _tempLabel;
     
     double _hScale;
     double _vScale;

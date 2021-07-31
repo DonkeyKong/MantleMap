@@ -17,11 +17,17 @@
 #include <chrono>
 #include <ctime>
 
+// #define CPPHTTPLIB_OPENSSL_SUPPORT
+// #include "cpp-httplib/httplib.h"
+// #include <nlohmann/json.hpp>
+// #include <fmt/format.h>
+// using json = nlohmann::json;
+
 #include "SolarScene.hpp"
 
 SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetime::Manual),
   _solarLine(map), _horizonLine(map), _sunCircle(map), _lunarLine(map), _moonCircle(map),
-  _sunriseLabel(map), _sunsetLabel(map)
+  _tempLabel(map), _sunriseLabel(map), _sunsetLabel(map)
 {   
   _vScale = (double)Map.height / 180.0 * 0.9;
   _vOffset = (double)Map.height * 0.05;
@@ -59,10 +65,71 @@ SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetim
   
   _lunarLine.SetThickness(1.5f);
   _solarLine.SetThickness(2.0f);
+  
+   _noaaTemp = "noaa";
+//   _exitTempUpdateThread = false;
+//   _tempUpdateThread = std::make_shared<std::thread>([&]()
+//   { 
+//     // Create a client to noaa's API
+//     httplib::Client noaa("https://api.weather.gov");
+//     std::string stationID = "????";
+//     
+//     try
+//     {
+//       _noaaTemp = "Requesting";
+//       
+//       // Request the point info for home zone of home
+//       auto pointsJson = json::parse(noaa.Get(fmt::format("/points/{0:.4f},{1:.4f}", Map.homeLatitudeDeg, Map.homeLongitudeDeg))->body);
+//       std::string stationsURL = pointsJson["properties"]["observationStations"];
+//       _noaaTemp = "Points";
+//       
+//       // Request info on the observation stations
+//       auto stationsJson = json::parse(noaa.Get(stationsURL)->body);
+//       _noaaTemp = "Stations";
+//       
+//       // Get the closest station
+//       double minDist = 180;
+//       for (auto station : stationsJson["features"])
+//       {
+//         double statLat = station["geometry"]["coordinates"][0];
+//         double statLon = station["geometry"]["coordinates"][1];
+//         double dist = sqrt(pow(statLat-Map.homeLatitudeDeg, 2) + pow(statLon-Map.homeLongitudeDeg, 2) );
+//         if (dist < minDist)
+//         {
+//           minDist = dist;
+//           stationID = station["properties"]["stationIdentifier"];
+//         }
+//       }
+//       _noaaTemp = stationID;
+//     }
+//     catch (...)
+//     {
+//       
+//       return;
+//     }
+//     
+//     // In a loop, get temperature observations!
+//     while (!_exitTempUpdateThread)
+//     {
+//       try
+//       {
+//         auto observationsJson = json::parse(noaa.Get(fmt::format("/stations/{}/observations", stationID))->body);
+//         int temp = observationsJson["features"][0]["properties"]["temperature"]["value"];
+//         _noaaTemp = fmt::format("{}ºC", temp);
+//       }
+//       catch (...)
+//       {
+//         _noaaTemp = "Error";
+//         return;
+//       }
+//       std::this_thread::sleep_for (std::chrono::milliseconds(10000));
+//     }
+//   });
 }
 
 SolarScene::~SolarScene()
 {
+  _exitTempUpdateThread = true;
 }
 
 const char* SolarScene::SceneName()
@@ -217,12 +284,19 @@ void SolarScene::updateOverride()
   _sunsetLabel.SetColor(0.5,0.375,0.0f,1.0f);
   _sunsetLabel.SetPosition(round((_sunsetJulian - _startJulian) * _hScale), 4);
   _sunsetLabel.SetAlignment(TextAlignment::Center);
+  
+  
+  _tempLabel.SetText(_noaaTemp);
+  _tempLabel.SetFontStyle(FontStyle::Narrow);
+  _tempLabel.SetColor(0.5,0.5,0.5f,1.0f);
+  _tempLabel.SetPosition(4, 4);
 }
 
 void SolarScene::drawOverride()
 {
   _sunriseLabel.Draw();
   _sunsetLabel.Draw();
+  _tempLabel.Draw();
 
   _horizonLine.Draw();
   _lunarLine.Draw();
