@@ -1,5 +1,5 @@
 CXXFLAGS=-Wall -O3 -g -Wextra -Wno-unused-parameter
-OBJECTS=mantlemap.o LoadShaders.o MapState.o Scene.o TextLabel.o PolyLine.o LightScene.o MapTimeScene.o CmdDebugScene.o DebugTransformScene.o SolarScene.o GLRenderContext.o Astronomy.o NaturalEarth.o
+OBJECTS=mantlemap.o format.o LoadShaders.o MapState.o Scene.o TextLabel.o PolyLine.o LightScene.o MapTimeScene.o CmdDebugScene.o DebugTransformScene.o SolarScene.o GLRenderContext.o Astronomy.o NaturalEarth.o
 BINARIES=mantlemap
 
 # Where our library resides. You mostly only need to change the
@@ -24,7 +24,8 @@ ASTRO_LIBRARY=$(ASTRO_LIBDIR)/$lib(ASTRO_LIBRARY_NAME).a
 
 EGL_INCDIR=/opt/vc/include
 EGL_LIBDIR=/opt/vc/lib
-LDFLAGS+=-L$(RGB_LIBDIR) -L$(EGL_LIBDIR) -L$(ASTRO_LIBDIR) -L$(NOVAS_LIBDIR) -l$(RGB_LIBRARY_NAME) -l$(ASTRO_LIBRARY_NAME) -l$(NOVAS_LIBRARY_NAME) -lrt -lm -lpthread -lbrcmGLESv2 -lbrcmEGL -lbcm_host
+LDFLAGS+= -L$(RGB_LIBDIR) -L$(EGL_LIBDIR) -L$(ASTRO_LIBDIR) -L$(NOVAS_LIBDIR) -l$(RGB_LIBRARY_NAME) -l$(ASTRO_LIBRARY_NAME) -l$(NOVAS_LIBRARY_NAME) 
+LDFLAGS+= -lrt -lm -lpthread -lbrcmGLESv2 -lbrcmEGL -lbcm_host -lssl -lcrypto
 
 INCDIRS=-I$(RGB_INCDIR) -I$(ASTRO_INCDIR) -I$(NOVAS_INCDIR) -I$(EGL_INCDIR) -Ijson/single_include -Ifmt/include
 
@@ -84,6 +85,9 @@ NaturalEarth.o : NaturalEarth.cpp
 	$(CXX) $(INCDIRS) $(CXXFLAGS) -c -o $@ $<
 
 LoadShaders.o : LoadShaders.cpp
+	$(CXX) $(INCDIRS) $(MAGICK_CXXFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+format.o : fmt/src/format.cc
 	$(CXX) $(INCDIRS) $(MAGICK_CXXFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 clean:

@@ -23,8 +23,8 @@ MapState::MapState()
     longitudeCenterDeg = 156.0;
     sunPropigationDeg = 80.0;
     
-    homeLatitudeDeg = 42.343657f;
-    homeLongitudeDeg = -71.118335f;
+    homeLatitudeDeg = 42.343657;
+    homeLongitudeDeg = -71.118335;
     lightAdjustEnabled = true;
     
     defaultScene = "Solar";

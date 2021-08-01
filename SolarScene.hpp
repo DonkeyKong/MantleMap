@@ -31,7 +31,7 @@ private:
     
     std::string _noaaTemp;
     bool _exitTempUpdateThread;
-    //std::shared_ptr<std::thread> _tempUpdateThread;
+    std::shared_ptr<std::thread> _tempUpdateThread;
     
     Color _moonColorDay;
     Color _moonColorNight;
