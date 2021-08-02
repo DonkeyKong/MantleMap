@@ -11,7 +11,9 @@
 #include "Scene.hpp"
 #include "MapState.hpp"
 
+#include <mutex>
 #include <thread>
+#include <condition_variable>
 
 class SolarScene : public Scene
 {
@@ -31,6 +33,8 @@ private:
     
     std::string _noaaTemp;
     bool _exitTempUpdateThread;
+    std::mutex _updateThreadMutex;
+    std::condition_variable _exitThreadCondition;
     std::shared_ptr<std::thread> _tempUpdateThread;
     
     Color _moonColorDay;
@@ -61,6 +65,8 @@ private:
     
     double _sunriseJulian;
     double _sunsetJulian;
+    
+    bool _showMoon;
 };
 
 #endif

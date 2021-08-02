@@ -196,61 +196,13 @@ void GfxProgram::SetCameraFromPixelTransform(int mapWidth, int mapHeight)
   }
 }
 
-static inline bool file_exists(const std::string& name) 
-{
-    if (FILE *file = fopen(name.c_str(), "r")) 
-    {
-        fclose(file);
-        return true;
-    } 
-    else 
-    {
-        return false;
-    }   
-}
-
-std::string GetResourcePath(std::string resourceName, std::string sceneName)
-{
-  std::string basePath("/home/pi/mantlemap/scenes/");
-  
-  std::string fileInSceneFolder = basePath + sceneName + std::string("/") + resourceName;
-  if (file_exists(fileInSceneFolder))
-  {
-    return fileInSceneFolder;
-  }
-  
-  return GetResourcePath(resourceName);
-}
-
-std::string GetResourcePath(std::string resourceName)
-{
-  std::string basePath("/home/pi/mantlemap/scenes/");
-  
-  std::string fileInSharedFolder = basePath + std::string("Shared") + std::string("/") + resourceName;
-  
-  if (file_exists(fileInSharedFolder))
-  {
-    return fileInSharedFolder;
-  }
-  
-  assert(false);
-  
-  return std::string();
-}
-
-GLuint LoadImageToTexture(std::string resourceName)
+GLuint LoadImageToTexture(std::string imagePath)
 {
   int width, height;
-  return LoadImageToTexture(resourceName, width, height);
+  return LoadImageToTexture(imagePath, width, height);
 }
 
-GLuint LoadImageToTexture(std::string resourceName, std::string sceneName)
-{
-  int width, height;
-  return LoadImageToTexture(resourceName, sceneName, width, height);
-}
-
-GLuint LoadImageToTexture(std::string resourceName, std::string sceneName, int& imageWidth, int& imageHeight)
+GLuint LoadImageToTexture(std::string imagePath, int& imageWidth, int& imageHeight)
 {
   // Read the map texture image from disk
   Image image;
@@ -261,7 +213,7 @@ GLuint LoadImageToTexture(std::string resourceName, std::string sceneName, int& 
   try
   {
     // Read a file into image object
-    image.read( GetResourcePath(resourceName, sceneName) );
+    image.read( imagePath );
   }
   catch( Magick::Exception &error_ )
   {
@@ -283,52 +235,11 @@ GLuint LoadImageToTexture(std::string resourceName, std::string sceneName, int& 
   return texID;
 }
 
-GLuint LoadImageToTexture(std::string resourceName, int& imageWidth, int& imageHeight)
-{
-  // Read the map texture image from disk
-  Image image;
-  imageWidth = -1;
-  imageHeight = -1;
-  GLuint texID = 0;
-  
-  try
-  {
-    // Read a file into image object
-    image.read( GetResourcePath(resourceName) );
-  }
-  catch( Magick::Exception &error_ )
-  {
-    std::cout << "Caught exception: " << error_.what() << std::endl;
-    return texID;
-  }
-  
-  imageWidth = image.columns();
-  imageHeight = image.rows();
-  std::vector<unsigned char> data(imageWidth*imageHeight*4);
-  image.write(0,0,imageWidth,imageHeight,"RGBA", Magick::CharPixel, &data[0]);
-  
-  glGenTextures(1, &texID);
-  glBindTexture(GL_TEXTURE_2D, texID);
-  glTexImage2D(GL_TEXTURE_2D, 0 , GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &data[0]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  
-  return texID;
-}
-
-GfxProgram LoadGraphicsProgram(std::string vertShaderName, std::string fragShaderName)
+GfxProgram LoadGraphicsProgram(std::string vertShaderPath, std::string fragShaderPath)
 {
   GfxProgram program;
-  program.LoadShaders(  GetResourcePath(vertShaderName).c_str(),
-                        GetResourcePath(fragShaderName).c_str());
-  return program;
-}
-
-GfxProgram LoadGraphicsProgram(std::string vertShaderName, std::string fragShaderName, std::string sceneName)
-{
-  GfxProgram program;
-  program.LoadShaders(  GetResourcePath(vertShaderName, sceneName).c_str(),
-                        GetResourcePath(fragShaderName, sceneName).c_str());
+  program.LoadShaders(  vertShaderPath.c_str(),
+                        fragShaderPath.c_str());
   return program;
 }
 

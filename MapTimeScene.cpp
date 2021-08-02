@@ -32,6 +32,11 @@ MapTimeScene::~MapTimeScene()
 {
 }
 
+void MapTimeScene::initGLOverride()
+{
+  TextLabel::InitGL(Map);
+}
+
 const char* MapTimeScene::SceneName()
 {
   return "Map Time Overlay";

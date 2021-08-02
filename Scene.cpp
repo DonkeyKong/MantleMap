@@ -7,6 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <iostream>
+#include <filesystem>
 
 #include "Scene.hpp"
 
@@ -35,6 +36,21 @@ Scene::Scene(MapState& map, SceneType sceneType, SceneLifetime sceneLifetime) :
 Scene::~Scene()
 {
   // Nothing to do here because we have no dynamically allocated resources
+}
+
+std::string Scene::GetResourcePath(std::string resourceName)
+{
+  auto filePath = std::filesystem::path(Map.sceneResourcePath) / SceneResourceDir() / resourceName;
+  if (std::filesystem::exists(filePath))
+  {
+    return filePath;
+  }
+  filePath = std::filesystem::path(Map.sceneResourcePath) / "Shared" / resourceName;
+  if (std::filesystem::exists(filePath))
+  {
+    return filePath;
+  }
+  return std::string();
 }
 
 void Scene::InitGL()
@@ -168,12 +184,12 @@ bool Scene::Query(std::string query, std::string& response)
 
 GLuint Scene::loadImageToTexture(std::string resourceName)
 {
-  return LoadImageToTexture(resourceName, SceneResourceDir());
+  return LoadImageToTexture(GetResourcePath(resourceName));
 }
 
 GfxProgram Scene::loadGraphicsProgram(std::string vertShaderName, std::string fragShaderName)
 {
-  return LoadGraphicsProgram(vertShaderName, fragShaderName, SceneResourceDir());
+  return LoadGraphicsProgram(GetResourcePath(vertShaderName), GetResourcePath(fragShaderName));
 }
 
 void Scene::drawMapRect()
@@ -193,5 +209,3 @@ void Scene::drawMapRect()
   // Draw the triangles!
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
-
-Astronomy Scene::AstronomyService;

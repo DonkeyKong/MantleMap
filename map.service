@@ -4,8 +4,8 @@ After=network.target ntpdate.service
 
 [Service]
 Environment=DISPLAY=:0
-ExecStart=/home/pi/mantlemap/mantlemap
-WorkingDirectory=/home/pi/mantlemap
+ExecStart=/home/pi/MantleMap/mantlemap
+WorkingDirectory=/home/pi/MantleMap
 StandardOutput=inherit
 StandardError=inherit
 Restart=always

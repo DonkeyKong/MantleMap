@@ -216,10 +216,7 @@ static void executeCommand(const char* src, const char* cmd, MapState& mapState)
 }
 
 void renderThread(MapState* map, const RGBMatrix::Options& matrixParams, const rgb_matrix::RuntimeOptions& runtimeParams)
-{
-  // Init ImageMagick library
-  Magick::InitializeMagick(nullptr); //*argv);
-  
+{  
   // Prepare matrix
   RGBMatrix* matrix = CreateMatrixFromOptions(matrixParams, runtimeParams);
   if (matrix == NULL)
@@ -233,9 +230,6 @@ void renderThread(MapState* map, const RGBMatrix::Options& matrixParams, const r
   
   // Create our hardware accelerated renderer
   GLRenderContext render(*map);
-  
-  // Load the global font for our labels
-  TextLabel::InitGL(LoadImageToTexture("font_6x6.png"), LoadImageToTexture("font_4x6.png"), LoadImageToTexture("font_8x12.png"));
   
   for (Scene* scene : baseScenes) 
   {
@@ -362,10 +356,15 @@ void renderThread(MapState* map, const RGBMatrix::Options& matrixParams, const r
 
 int main(int argc, char *argv[]) 
 { 
+  // Init ImageMagick library
+  Magick::InitializeMagick(nullptr); //*argv);
+
   // Subscribe to signal interrupts
   signal(SIGTERM, InterruptHandler);
   signal(SIGINT, InterruptHandler);
-
+  
+  MapState mapState;
+  
   // Mantle map parameters
   int cols = 64;
   int rows = 32;
@@ -388,17 +387,6 @@ int main(int argc, char *argv[])
   runtimeParams.do_gpio_init = true;
   runtimeParams.gpio_slowdown = slowdown;
   
-  
-  MapState mapState;
-//   mapState.width = cols * chainLength;
-//   mapState.height = rows * parallelLength;
-//   mapState.marginTop = 1;
-//   mapState.marginBottom = 2;
-//   mapState.marginLeft = 7;
-//   mapState.marginRight = 7;
-//   mapState.latitudeCenterDeg = 0.0;
-//   mapState.longitudeCenterDeg = 156.0;
-  
   // Create the scene library
   DebugTransformScene debugScene(mapState);
   LightScene lightScene(mapState);
@@ -419,6 +407,9 @@ int main(int argc, char *argv[])
   
   // Bring up the default base scene
   swapBaseScene(mapState.defaultScene);
+  
+  // Save the config after opening all the scenes
+  mapState.SaveConfig();
   
   std::thread t(&renderThread, &mapState, matrixParams, runtimeParams);
   
@@ -452,7 +443,6 @@ int main(int argc, char *argv[])
   }
   
   t.join();
-  std::cout << "Render thread joined. Exit complete." << std::endl;
 
   return 0;
 }

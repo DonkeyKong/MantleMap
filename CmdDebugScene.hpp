@@ -23,6 +23,7 @@ class CmdDebugScene : public Scene
     void ShowCmd(std::string query);
     
 protected:
+    void initGLOverride() override;
     void updateOverride() override;
     void drawOverride() override;
     

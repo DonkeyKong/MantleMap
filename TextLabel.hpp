@@ -38,7 +38,7 @@ class TextLabel
     TextLabel(MapState&);
     ~TextLabel();
     
-    static void InitGL(GLuint fontTextureLarge, GLuint fontTextureSmall, GLuint fontTextureBigTall);
+    static void InitGL(MapState& map);
     void SetText(std::string);
     void SetFontStyle(FontStyle style, float scale = 1.0f);
     void SetColor(float r, float g, float b, float a);

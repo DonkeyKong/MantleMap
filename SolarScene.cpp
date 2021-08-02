@@ -65,6 +65,8 @@ SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetim
   _solarLine(map), _horizonLine(map), _sunCircle(map), _lunarLine(map), _moonCircle(map),
   _tempLabel(map), _sunriseLabel(map), _sunsetLabel(map)
 {   
+  _showMoon = Map.GetConfigValue("solarShowMoon", true);
+  
   _vScale = (double)Map.height / 180.0 * 0.9;
   _vOffset = (double)Map.height * 0.05;
   _hScale = (double)Map.width;
@@ -104,6 +106,9 @@ SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetim
   
   _noaaTemp = "Initializing";
   _exitTempUpdateThread = false;
+  
+  
+  
   _tempUpdateThread = std::make_shared<std::thread>([&]()
   { 
     // Create a client to noaa's API
@@ -173,14 +178,27 @@ SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetim
         errorCount = 0;
       }
       
-      std::this_thread::sleep_for (std::chrono::seconds(60));
+      {
+        std::unique_lock<std::mutex> lock(_updateThreadMutex);
+        _exitThreadCondition.wait_for( 
+                        lock,
+                        std::chrono::seconds(60));
+      }
+      
+      //std::this_thread::sleep_for (std::chrono::seconds(60));
     }
   });
 }
 
 SolarScene::~SolarScene()
-{
-  _exitTempUpdateThread = true;
+{ 
+  {
+     _exitTempUpdateThread = true;
+     std::lock_guard<std::mutex> lock(_updateThreadMutex);
+     _exitThreadCondition.notify_one();
+  }
+  
+  _tempUpdateThread->join();
 }
 
 const char* SolarScene::SceneName()
@@ -195,7 +213,8 @@ const char* SolarScene::SceneResourceDir()
 
 void SolarScene::initGLOverride()
 {
-  PolyLine::InitGL();
+  PolyLine::InitGL(Map);
+  TextLabel::InitGL(Map);
 }
 
 static float invInterp(float start, float end, float val)
@@ -245,7 +264,7 @@ void SolarScene::updateOverride()
     for (double t = _startJulian; t <= (_endJulian+0.05); t += (4.0/(double)Map.width))
     {
       double latitudeDeg, longitudeDeg;
-      AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
+      Map.AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
       double degAway = Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
       points.push_back(
       {
@@ -263,7 +282,7 @@ void SolarScene::updateOverride()
     for (double t = _startJulian; t <= _endJulian; t += (1.0 / 1440.0))
     {
       double latitudeDeg, longitudeDeg;
-      AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
+      Map.AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
       double degAway = Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
       
       if (degAway < 90.0 && _sunriseJulian == 0)
@@ -289,7 +308,7 @@ void SolarScene::updateOverride()
     for (double t = _startJulianMoon; t <= (_endJulianMoon+0.05); t += (4.0/(double)Map.width))
     {
       double latitudeDeg, longitudeDeg;
-      AstronomyService.GetLunarPoint(t, latitudeDeg, longitudeDeg);
+      Map.AstronomyService.GetLunarPoint(t, latitudeDeg, longitudeDeg);
       points.push_back(
       {
         (t - _startJulianMoon) * _hScale,
@@ -303,8 +322,8 @@ void SolarScene::updateOverride()
   
   // Position the sun and moon
   double sunLatDeg, sunlonDeg, moonLatDeg, moonlonDeg;
-  AstronomyService.GetSolarPoint(Map.GetMapTimeAsJulianDate(), sunLatDeg, sunlonDeg);
-  AstronomyService.GetLunarPoint(Map.GetMapTimeAsJulianDate(), moonLatDeg, moonlonDeg);
+  Map.AstronomyService.GetSolarPoint(Map.GetMapTimeAsJulianDate(), sunLatDeg, sunlonDeg);
+  Map.AstronomyService.GetLunarPoint(Map.GetMapTimeAsJulianDate(), moonLatDeg, moonlonDeg);
   _sunCircle.SetLocation( (float) ( Map.GetMapTimeAsJulianDate() -  _startJulian) * _hScale,
                            (float) _vOffset + Map.GetAngleDistInDegFromHomeTangent(sunLatDeg, sunlonDeg) * _vScale);    
   _moonCircle.SetLocation( (float) ( Map.GetMapTimeAsJulianDate() -  _startJulianMoon) * _hScale,
@@ -349,14 +368,20 @@ void SolarScene::drawOverride()
   _tempLabel.Draw();
 
   _horizonLine.Draw();
-  _lunarLine.Draw();
+  if (_showMoon) 
+  {
+    _lunarLine.Draw();
+  }	
   _solarLine.Draw();
   
-  _moonCircle.Draw();
-  _moonCircle.Move(-Map.width, 0);
-  _moonCircle.Draw();
-  _moonCircle.Move(2.0f * Map.width, 0);
-  _moonCircle.Draw();
+  if (_showMoon) 
+  {
+    _moonCircle.Draw();
+    _moonCircle.Move(-Map.width, 0);
+    _moonCircle.Draw();
+    _moonCircle.Move(2.0f * Map.width, 0);
+    _moonCircle.Draw();
+  }
   
   _sunCircle.Draw();
   _sunCircle.Move(-Map.width, 0);

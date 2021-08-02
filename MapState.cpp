@@ -1,5 +1,14 @@
 #include "MapState.hpp"
+
 #include <math.h>
+#include <filesystem>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+
+using json = nlohmann::json;
+
+static const std::string CONFIG_PATH = "/boot/MantleMapConfig.json";
 
 static double getJulianFromUnix( double unixSecs )
 {
@@ -11,29 +20,132 @@ static double getUnixFromJulian( double julian )
   return (julian - 2440587.5) * 86400.0;
 }
 
+
 MapState::MapState()
 {
-    width = 192;
-    height = 96;
-    marginTop = 1;
-    marginBottom = 2;
-    marginLeft = 7;
-    marginRight = 8;
-    latitudeCenterDeg = 0.0;
-    longitudeCenterDeg = 156.0;
-    sunPropigationDeg = 80.0;
+  _settingsReadOK = readConfig();
+  
+  // LED matrix settings
+  width = GetConfigValue("width", 192);
+  height = GetConfigValue("height", 96);
+  
+  // Sunlight map settings
+  marginTop = GetConfigValue("marginTop", 1);
+  marginBottom = GetConfigValue("marginBottom", 2);
+  marginLeft = GetConfigValue("marginLeft", 7);
+  marginRight = GetConfigValue("marginRight", 8);
+  latitudeCenterDeg = GetConfigValue("latitudeCenterDeg", 0.0f);
+  longitudeCenterDeg = GetConfigValue("longitudeCenterDeg", 156.0f);
+  sunPropigationDeg = GetConfigValue("sunPropigationDeg", 80.0f);
+  
+  // Home location
+  homeLatitudeDeg = GetConfigValue("homeLatitudeDeg", 0.0);
+  homeLongitudeDeg = GetConfigValue("homeLongitudeDeg", 0.0);
     
-    homeLatitudeDeg = 42.343657;
-    homeLongitudeDeg = -71.118335;
-    lightAdjustEnabled = true;
+  // Render settings
+  lightAdjustEnabled = GetConfigValue("lightAdjustEnabled", true);
+  
+  // System settings
+  sceneResourcePath = GetConfigValue("sceneResourcePath", std::string("/home/pi/MantleMap/scenes"));
+  ephemeridesPath = GetConfigValue("ephemeridesPath", std::string("/home/pi/MantleMap/de430/linux_p1550p2650.430"));
+  defaultScene = GetConfigValue("defaultScene", std::string("Solar"));
+  
+  // Don't overwrite a misread file, but feel free to overwrite
+  // a missing or correctly read file
+  //SaveConfig();
     
-    defaultScene = "Solar";
+  // Internal vars
+  AstronomyService.Init(ephemeridesPath);
+  _timeMultiplier = 1.0;
+  _timePaused = false;
+  _isSleeping = false;
+  
+  ResetTime();
+}
+
+MapState::~MapState()
+{
+  
+}
+
+void MapState::SaveConfig()
+{
+  if (_settingsReadOK) writeConfig();
+}
+
+std::string MapState::GetResourcePath(std::string resourceName)
+{
+  auto filePath = std::filesystem::path(sceneResourcePath) / "Shared" / resourceName;
+  if (std::filesystem::exists(filePath))
+  {
+    return filePath;
+  }
+  return std::string();
+}
+
+bool MapState::readConfig()
+{
+  // Clear the existing config and set it up as a json object
+  _config = json::object();
+  
+  // If the config file doesn't exist, then we are done. 
+  // Consider it "read" so we can overwrite the file.
+  if (!std::filesystem::exists(CONFIG_PATH))
+  {
+    std::cout << "Config file missing, using defaults." << std::endl;
+    return true;
+  }
+  
+  // Try to read the file
+  try
+  {
+    std::ifstream ifs(CONFIG_PATH);
+    _config = json::parse(ifs);
+    ifs.close();
+    std::cout << "Read and parsed config file!" << std::endl;
+  }
+  catch (...)
+  {
+    std::cout << "Failed to read or parse config file!" << std::endl;
+    std::cout << "Delete it of fix permissions to generate a new one." << std::endl;
+    return false;
+  }
+  
+  // If the config is some nonsense, clear it
+  if (!_config.is_object()) 
+  {
+    std::cout << "Config was parsed but invalid!" << std::endl;
+    std::cout << "Delete it to generate a new one." << std::endl;
+    _config = json::object();
+    return false;
+  }	
+  
+  return true;
+}
+
+void MapState::writeConfig()
+{
+  try
+  {
+    std::ofstream ofs(CONFIG_PATH, std::ofstream::out | std::ofstream::trunc);
+    ofs << std::setw(4) << _config;
+    ofs.flush();
+    ofs.close();
     
-    _timeMultiplier = 1.0;
-    _timePaused = false;
-    _isSleeping = false;
-    
-    ResetTime();
+    if ( (ofs.rdstate() & std::ifstream::failbit ) != 0 )
+    {
+      std::cout << "Failed to write config file!" << std::endl;
+    }
+    else
+    {
+      std::cout << "Wrote config file!" << std::endl;
+    }
+    //std::cout << _config << std::endl;
+  }
+  catch (...)
+  {
+    std::cout << "Failed to write config file!" << std::endl;
+  }
 }
     
 void MapState::RunTime()

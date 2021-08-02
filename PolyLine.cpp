@@ -19,13 +19,13 @@ PolyLine::PolyLine(MapState& map) : _map(map)
     _color = {1.0f,1.0f,1.0f,1.0f};
 }
 
-void PolyLine::InitGL()
+void PolyLine::InitGL(MapState& map)
 {  
   if (!_program.isLoaded)
   {
     // Load and compile the shaders into a glsl program
-    _program.LoadShaders(GetResourcePath(_vertShaderName).c_str(),
-                         GetResourcePath(_fragShaderName).c_str());
+    _program.LoadShaders(map.GetResourcePath(_vertShaderName).c_str(),
+                         map.GetResourcePath(_fragShaderName).c_str());
                          
     
     _vertexAttrib = glGetAttribLocation(_program.GetId(), "aVertex");

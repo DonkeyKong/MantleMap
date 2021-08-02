@@ -46,13 +46,8 @@ public:
 };
 
 // Some OpenGL utility functions
-std::string GetResourcePath(std::string resourceName, std::string sceneName);
-std::string GetResourcePath(std::string resourceName);
-GLuint LoadImageToTexture(std::string resourceName, std::string sceneName, int& imageWidth, int& imageHeight);
-GLuint LoadImageToTexture(std::string resourceName, std::string sceneName);
-GLuint LoadImageToTexture(std::string resourceName, int& imageWidth, int& imageHeight);
-GLuint LoadImageToTexture(std::string resourceName);
-GfxProgram LoadGraphicsProgram(std::string vertShaderName, std::string fragShaderName, std::string sceneName);
-GfxProgram LoadGraphicsProgram(std::string vertShaderName, std::string fragShaderName);
+GLuint LoadImageToTexture(std::string imagePath);
+GLuint LoadImageToTexture(std::string imagePath, int& imageWidth, int& imageHeight);
+GfxProgram LoadGraphicsProgram(std::string vertShaderPath, std::string fragShaderPath);
 
 #endif

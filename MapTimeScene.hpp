@@ -21,6 +21,7 @@ class MapTimeScene : public Scene
     const char* SceneResourceDir() override;
     
 protected:
+    void initGLOverride() override;
     void updateOverride() override;
     void drawOverride() override;
     

@@ -4,6 +4,10 @@
 #include <chrono>
 #include <string>
 #include <time.h>
+#include <iostream>
+#include <nlohmann/json.hpp>
+
+#include "Astronomy.hpp"
 
 typedef std::chrono::duration<double, std::ratio<1, 1>> fractionalSeconds;
 typedef std::chrono::duration<double, std::ratio<86400, 1>> fractionalDays;
@@ -15,6 +19,8 @@ typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>
 class MapState
 {
   public:
+  
+    // Public fields (tbd: eliminate or make private)
     int width;
     int height;
     int marginTop;
@@ -28,8 +34,16 @@ class MapState
     double homeLongitudeDeg;
     bool lightAdjustEnabled;
     std::string defaultScene;
+    std::string sceneResourcePath;
+    std::string ephemeridesPath;
     
+    Astronomy AstronomyService;
+    
+    // Constructor
     MapState();
+    ~MapState();
+    
+    // Control the flow of time
     void RunTime();
     void PauseTime();
     void ResetTime();
@@ -39,13 +53,7 @@ class MapState
     void SetTimeMultiplier(double timeMultiplier);
     double GetTimeMultiplier();
     
-    float GetAngleDistInDegFromHomeTangent(double latDeg, double lonDeg);
-    float GetLightBoost(double sunLatDeg, double sunLonDeg);
-    
-    
-    void SetSleep(bool value);
-    bool GetSleep();
-    
+    // Time utility functions
     timepoint_t GetMapTime();
     double GetTimeAsJulianDate();
     double GetMapTimeAsJulianDate();
@@ -54,14 +62,70 @@ class MapState
     double GetJulianDateFromLocaltime(std::tm&);
     std::tm GetLocaltimeFromJulianDate(double);
     
+    // Light angle utilities
+    float GetAngleDistInDegFromHomeTangent(double latDeg, double lonDeg);
+    float GetLightBoost(double sunLatDeg, double sunLonDeg);
+    
+    // Map sleep property
+    void SetSleep(bool value);
+    bool GetSleep();
+    
+    // Resource path utils
+    std::string GetResourcePath(std::string resourceName);
+    
+    // Configuration functions
+    template <typename T>
+    T GetConfigValue(std::string key, T defaultValue)
+    {
+      try
+      {
+        if (_config.contains(key))
+        {
+          defaultValue = _config[key];  // Try to read this value from the config
+          //std::cout << "Read " << key << std::endl;
+        }
+        else
+        {
+          _config[key] = defaultValue;
+          //std::cout << "Setting " << key << std::endl;
+        }
+      }
+      catch (...)
+      {
+        _config[key] = defaultValue;  // If anything bad happened, write/overwrite with the default
+        //std::cout << "Setting " << key << std::endl;
+      }
+      
+      return defaultValue;
+    }
+    
+    template <typename T>
+    void SetConfigValue(std::string key, T value)
+    {
+      try
+      {
+        _config[key] = value;
+      }
+      catch (...)
+      {
+      }
+    }
+    
+    void SaveConfig();
+    
   private: 
+    // Internal config
+    bool readConfig();
+    void writeConfig();
+    nlohmann::json _config;
+    
+    // Internal time state vars
     timepoint_t _referencePoint;
     fractionalDays _mapTimeOffset;
     bool _isSleeping;
-    
     double _timeMultiplier;
     bool _timePaused;
-    
+    bool _settingsReadOK;
 };
 
 #endif /* MAPSTATE_HPP */

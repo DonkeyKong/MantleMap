@@ -25,20 +25,20 @@ TextLabel::TextLabel(MapState& map) : _map(map)
   _textDirty = true;
 }
 
-void TextLabel::InitGL(GLuint fontTextureLarge, GLuint fontTextureSmall, GLuint fontTextureBigTall)
+void TextLabel::InitGL(MapState& map)
 {  
   if (!_program.isLoaded)
   {
     // Load and compile the shaders into a glsl program
-    _program.LoadShaders(GetResourcePath(_vertShaderName).c_str(),
-                         GetResourcePath(_fragShaderName).c_str());
-                         
+    _program.LoadShaders(map.GetResourcePath(_vertShaderName).c_str(),
+                         map.GetResourcePath(_fragShaderName).c_str());
+    
+    _fontTextureLarge = LoadImageToTexture(map.GetResourcePath("font_6x6.png"));
+    _fontTextureSmall = LoadImageToTexture(map.GetResourcePath("font_4x6.png"));
+    _fontTextureBigTall = LoadImageToTexture(map.GetResourcePath("font_8x12.png"));
     
     _vertexAttrib = glGetAttribLocation(_program.GetId(), "aVertex");
     _coordinateAttrib = glGetAttribLocation(_program.GetId(), "aTexCoord");
-    _fontTextureLarge = fontTextureLarge;
-    _fontTextureSmall = fontTextureSmall;
-    _fontTextureBigTall = fontTextureBigTall;
   }
 }
 

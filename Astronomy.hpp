@@ -12,6 +12,7 @@ class Astronomy
 {
  public:
     Astronomy();
+    void Init(std::string ephemeridesPath);
     ~Astronomy();
     
     void GetSolarPoint(double julianDate, double& latitudeDeg, double& longitudeDeg);

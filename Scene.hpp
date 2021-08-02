@@ -7,7 +7,6 @@
 #include "EGL/eglext.h"
 
 #include "LoadShaders.hpp"
-#include "Astronomy.hpp"
 #include "NaturalEarth.hpp"
 #include "MapState.hpp"
 
@@ -41,6 +40,9 @@ class Scene
     
     // What is the name of the folder inside "Scenes" where this scene's resouces are stored
     virtual const char* SceneResourceDir() = 0;
+    
+    // Get 
+    virtual std::string GetResourcePath(std::string resourceName) final;
     
     // Initialize all OpenGL data like textures and shaders
     virtual void InitGL() final;
@@ -94,7 +96,7 @@ class Scene
     GfxProgram loadGraphicsProgram(std::string vertShaderName, std::string fragShaderName);
 
     NaturalEarth projection;
-    static Astronomy AstronomyService;
+    
     GLuint LonLatLookupTexture;
     MapState& Map;
     std::string BaseSceneName;

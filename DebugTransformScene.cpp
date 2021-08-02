@@ -53,6 +53,8 @@ const char* DebugTransformScene::SceneResourceDir()
 
 void DebugTransformScene::initGLOverride()
 {
+  TextLabel::InitGL(Map);
+
   // Load and compile the shaders into a glsl program
   program = loadGraphicsProgram(vertShader, fragShader);
   program.SetCameraFromPixelTransform(Map.width,Map.height);

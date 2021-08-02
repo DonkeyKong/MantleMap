@@ -31,6 +31,11 @@ CmdDebugScene::~CmdDebugScene()
 {
 }
 
+void CmdDebugScene::initGLOverride()
+{
+  TextLabel::InitGL(Map);
+}
+
 const char* CmdDebugScene::SceneName()
 {
   return "Command Debug Overlay";

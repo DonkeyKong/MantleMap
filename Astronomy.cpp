@@ -10,7 +10,13 @@
 
 Astronomy::Astronomy()
 {
-  char workpath[] = "/home/pi/mantlemap/de430/linux_p1550p2650.430";
+
+}
+
+void Astronomy::Init(std::string ephemeridesPath)
+{
+  char workpath[1024];
+  strncpy(workpath, ephemeridesPath.c_str(), 1023);
   
   cat_entry dummy_star;
   char ttl[85];

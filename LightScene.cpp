@@ -282,7 +282,7 @@ void LightScene::updateOverride()
   // Update the sun's location
   if (!overrideSunLocation)
   {
-    AstronomyService.GetSolarPoint(Map.GetMapTimeAsJulianDate(), sunTargetLat, sunTargetLon);
+    Map.AstronomyService.GetSolarPoint(Map.GetMapTimeAsJulianDate(), sunTargetLat, sunTargetLon);
   }
   
   moveTowardsAngleDeg2D(sunCurrentLat, sunCurrentLon, sunTargetLat, sunTargetLon, 0.5 * Map.GetTimeMultiplier());
@@ -314,7 +314,7 @@ void LightScene::drawOverride()
   
   {
     double lat, lon;
-    AstronomyService.GetSolarPoint(Map.GetTimeAsJulianDate(), lat, lon);
+    Map.AstronomyService.GetSolarPoint(Map.GetTimeAsJulianDate(), lat, lon);
     program.SetUniform("uLightBoost", Map.GetLightBoost(lat, lon));
   }
   
@@ -327,7 +327,7 @@ void LightScene::drawOverride()
   
   // Do the same for the moon
   double lat, lon;
-  AstronomyService.GetLunarPoint(Map.GetMapTimeAsJulianDate(), lat, lon);
+  Map.AstronomyService.GetLunarPoint(Map.GetMapTimeAsJulianDate(), lat, lon);
   program.SetUniform("uMoonLonLat", (float)(lon * (M_PI / 180.0)), (float)(lat * (M_PI / 180.0)));
   
   // Draw a full map-sized rectagle using the current shader

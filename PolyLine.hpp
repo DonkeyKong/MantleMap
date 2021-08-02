@@ -28,7 +28,7 @@ class PolyLine
     PolyLine(MapState&);
     ~PolyLine();
     
-    static void InitGL();
+    static void InitGL(MapState& map);
     void SetPoints(const std::vector<PolyLinePoint>& points);
     void AddPoint(const PolyLinePoint& point);
     void SetThickness(float thickness);
