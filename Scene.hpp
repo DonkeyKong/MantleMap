@@ -1,14 +1,14 @@
 #ifndef SCENE_HPP
 #define SCENE_HPP
 
+#include "LoadShaders.hpp"
+#include "NaturalEarth.hpp"
+#include "MapState.hpp"
+
 #include "EGL/egl.h"
 #include "EGL/eglplatform.h"
 #include "GLES2/gl2.h"
 #include "EGL/eglext.h"
-
-#include "LoadShaders.hpp"
-#include "NaturalEarth.hpp"
-#include "MapState.hpp"
 
 #include <chrono>
 #include <string>

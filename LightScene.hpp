@@ -1,14 +1,7 @@
 #ifndef LIGHTSCENE_HPP
 #define LIGHTSCENE_HPP
 
-#include "EGL/egl.h"
-#include "EGL/eglplatform.h"
-#include "GLES2/gl2.h"
-#include "EGL/eglext.h"
-
-#include "LoadShaders.hpp"
 #include "Scene.hpp"
-#include "MapState.hpp"
 
 class LightScene : public Scene
 {

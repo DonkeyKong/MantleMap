@@ -1,14 +1,4 @@
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <assert.h>
-#include <time.h>
-#include <unistd.h>
-#include <iostream>
-#include <bcm_host.h>
+#include "LightScene.hpp"
 
 #include <regex>
 #include <algorithm>
@@ -16,8 +6,6 @@
 #include <sstream>
 #include <chrono>
 #include <ctime>
-
-#include "LightScene.hpp"
 
 LightScene::LightScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetime::Manual)
 {

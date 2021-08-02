@@ -1,15 +1,7 @@
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <assert.h>
-#include <time.h>
-#include <unistd.h>
-#include <iostream>
-#include <filesystem>
-
 #include "Scene.hpp"
+
+#include <assert.h>
+#include <filesystem>
 
 #define check() assert(glGetError() == 0)
 
@@ -23,9 +15,6 @@ Scene::Scene(MapState& map, SceneType sceneType, SceneLifetime sceneLifetime) :
     (float)map.width, (float)map.height, 0.0f,
     (float)map.width,  0.0f, 0.0f
   }
-  
-  
-  
 {
   _isVisible = false;
   _sceneType = sceneType;

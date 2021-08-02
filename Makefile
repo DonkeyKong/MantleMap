@@ -1,5 +1,5 @@
 CXXFLAGS=-Wall -O3 -g -Wextra -Wno-unused-parameter -std=c++17
-OBJECTS=mantlemap.o format.o LoadShaders.o MapState.o Scene.o TextLabel.o PolyLine.o LightScene.o MapTimeScene.o CmdDebugScene.o DebugTransformScene.o SolarScene.o GLRenderContext.o Astronomy.o NaturalEarth.o
+OBJECTS=mantlemap.o format.o LoadShaders.o MapState.o Scene.o TextLabel.o PolyLine.o LightScene.o MapTimeScene.o CmdDebugScene.o DebugTransformScene.o WeatherScene.o SolarScene.o GLRenderContext.o Astronomy.o NaturalEarth.o
 BINARIES=mantlemap
 
 # Where our library resides. You mostly only need to change the
@@ -76,6 +76,9 @@ DebugTransformScene.o : DebugTransformScene.cpp
 	$(CXX) $(INCDIRS) $(CXXFLAGS) $(MAGICK_CXXFLAGS) -c -o $@ $<
 
 SolarScene.o : SolarScene.cpp
+	$(CXX) $(INCDIRS) $(CXXFLAGS) $(MAGICK_CXXFLAGS) -c -o $@ $<
+
+WeatherScene.o : WeatherScene.cpp
 	$(CXX) $(INCDIRS) $(CXXFLAGS) $(MAGICK_CXXFLAGS) -c -o $@ $<
 
 Astronomy.o : Astronomy.cpp

@@ -8,6 +8,8 @@ extern "C"
   #include <eph_manager.h>
 }
 
+#include <string>
+
 class Astronomy
 {
  public:

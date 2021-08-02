@@ -1,19 +1,10 @@
 #ifndef SolarScene_HPP
 #define SolarScene_HPP
 
-#include "EGL/egl.h"
-#include "EGL/eglplatform.h"
-#include "GLES2/gl2.h"
-#include "EGL/eglext.h"
-
 #include "PolyLine.hpp"
 #include "TextLabel.hpp"
 #include "Scene.hpp"
 #include "MapState.hpp"
-
-#include <mutex>
-#include <thread>
-#include <condition_variable>
 
 class SolarScene : public Scene
 {
@@ -30,13 +21,6 @@ protected:
     void drawOverride() override;
     
 private:
-    
-    std::string _noaaTemp;
-    bool _exitTempUpdateThread;
-    std::mutex _updateThreadMutex;
-    std::condition_variable _exitThreadCondition;
-    std::shared_ptr<std::thread> _tempUpdateThread;
-    
     Color _moonColorDay;
     Color _moonColorNight;
     Color _sunColorDay;
@@ -52,7 +36,6 @@ private:
     
     TextLabel _sunriseLabel;
     TextLabel _sunsetLabel;
-    TextLabel _tempLabel;
     
     double _hScale;
     double _vScale;

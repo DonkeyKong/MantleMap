@@ -1,5 +1,4 @@
 #include "TextLabel.hpp"
-#include <iostream>
 
 GfxProgram TextLabel::_program;
 std::string TextLabel::_vertShaderName = "fontvertshader.glsl"; 
@@ -148,9 +147,7 @@ void TextLabel::updateBuffers()
   {
     int oldSize = _vertex.size() / 18;
     _vertex.resize(_text.size() * 18);
-    
-    //std::cout << "Old size was " << oldSize << ". Expanding to " << _text.size() << std::endl;
-    
+        
     int dx = _direction==TextFlowDirection::Horizontal ? 1 : 0;
     int dy = _direction==TextFlowDirection::Vertical ? 1 : 0;
     

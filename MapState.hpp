@@ -1,13 +1,13 @@
 #ifndef MAPSTATE_HPP
 #define MAPSTATE_HPP
 
+#include "Astronomy.hpp"
+
 #include <chrono>
 #include <string>
-#include <time.h>
+#include <ctime>
 #include <iostream>
 #include <nlohmann/json.hpp>
-
-#include "Astronomy.hpp"
 
 typedef std::chrono::duration<double, std::ratio<1, 1>> fractionalSeconds;
 typedef std::chrono::duration<double, std::ratio<86400, 1>> fractionalDays;

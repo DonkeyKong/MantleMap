@@ -7,10 +7,9 @@
 //
 
 #include "NaturalEarth.hpp"
-
-#include <stdio.h>
-#include <math.h>
 #include "MapState.hpp"
+
+#include <math.h>
 
 double NaturalEarth::A0 = 0.8707;
 double NaturalEarth::A1 = -0.131979;

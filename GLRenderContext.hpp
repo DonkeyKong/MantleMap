@@ -1,13 +1,15 @@
 #ifndef GLRENDERCONTEXT_HPP
 #define GLRENDERCONTEXT_HPP
 
+#include "Scene.hpp"
+#include "MapState.hpp"
+
+#include "led-matrix.h"
+
 #include "EGL/egl.h"
 #include "EGL/eglplatform.h"
 #include "GLES2/gl2.h"
 #include "EGL/eglext.h"
-#include "led-matrix.h"
-#include "Scene.hpp"
-#include "MapState.hpp"
 
 class GLRenderContext
 {

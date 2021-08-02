@@ -1,7 +1,8 @@
+#include "GLRenderContext.hpp"
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <assert.h>
@@ -9,8 +10,6 @@
 #include <unistd.h>
 #include <iostream>
 #include <bcm_host.h>
-
-#include "GLRenderContext.hpp"
 
 #define check() assert(glGetError() == 0)
 

@@ -11,6 +11,7 @@
 #include "CmdDebugScene.hpp"
 #include "DebugTransformScene.hpp"
 #include "SolarScene.hpp"
+#include "WeatherScene.hpp"
 #include "MapState.hpp"
 #include "TextLabel.hpp"
 
@@ -391,6 +392,7 @@ int main(int argc, char *argv[])
   DebugTransformScene debugScene(mapState);
   LightScene lightScene(mapState);
   MapTimeScene mapTimeScene(mapState);
+  WeatherScene weatherScene(mapState);
   CmdDebugScene cmdDebugScene(mapState);
   SolarScene solarScene(mapState);
   
@@ -398,11 +400,13 @@ int main(int argc, char *argv[])
   addScene(&solarScene);
   addScene(&lightScene);
   addScene(&mapTimeScene);
+  addScene(&weatherScene);
   addScene(&cmdDebugScene);
   cmdDebugScenePtr = &cmdDebugScene;
   
-  // By default, always show mapTime and cmdDebug
+  // By default, always show mapTime, weather, and cmdDebug
   mapTimeScene.Show();
+  weatherScene.Show();
   cmdDebugScene.Show();
   
   // Bring up the default base scene

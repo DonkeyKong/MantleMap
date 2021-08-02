@@ -1,23 +1,9 @@
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <assert.h>
-#include <time.h>
-#include <unistd.h>
-#include <iostream>
-#include <bcm_host.h>
+#include "MapTimeScene.hpp"
+#include "LoadShaders.hpp"
 
-#include <regex>
-#include <algorithm>
-#include <string>
-#include <sstream>
 #include <chrono>
 #include <ctime>
 
-#include "MapTimeScene.hpp"
 
 MapTimeScene::MapTimeScene(MapState& map) : Scene(map, SceneType::Overlay, SceneLifetime::Manual),
     _monthLabel(map),

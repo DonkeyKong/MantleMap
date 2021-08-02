@@ -1,15 +1,12 @@
+#include "LoadShaders.hpp"
+
 #include <stdio.h>
 #include <unistd.h>
-
 #include <fcntl.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <iostream>
 #include <vector>
 #include <assert.h>
-
-#include "LoadShaders.hpp"
 
 #include <Magick++.h>
 #include <magick/image.h>

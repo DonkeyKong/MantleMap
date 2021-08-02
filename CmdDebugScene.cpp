@@ -1,22 +1,3 @@
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <assert.h>
-#include <time.h>
-#include <unistd.h>
-#include <iostream>
-#include <bcm_host.h>
-
-#include <regex>
-#include <algorithm>
-#include <string>
-#include <sstream>
-#include <chrono>
-#include <ctime>
-
 #include "CmdDebugScene.hpp"
 
 CmdDebugScene::CmdDebugScene(MapState& map) : Scene(map, SceneType::Overlay, SceneLifetime::Manual),
