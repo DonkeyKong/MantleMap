@@ -1,5 +1,8 @@
 #include "SolarScene.hpp"
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
 SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetime::Manual),
   _solarLine(map), _horizonLine(map), _sunCircle(map), _lunarLine(map), _moonCircle(map),
   _sunriseLabel(map), _sunsetLabel(map)
@@ -108,6 +111,8 @@ void SolarScene::updateOverride()
 
     // Create the sun polyline
     std::vector<PolyLinePoint> points;
+    double sunriseJulianGuess = 0;
+    double sunsetJulianGuess = 0;
     for (double t = _startJulian; t <= (_endJulian+0.05); t += (4.0/(double)Map.width))
     {
       double latitudeDeg, longitudeDeg;
@@ -120,24 +125,44 @@ void SolarScene::updateOverride()
         0,
         0.5f, 0.5f, 0.25f, 1.0f
       });
+      
+      if (degAway < 90.0 && sunriseJulianGuess == 0)
+        sunriseJulianGuess = t;
+      if (degAway > 90.0 && sunriseJulianGuess != 0 && sunsetJulianGuess == 0)
+        sunsetJulianGuess = t;
     }
     _solarLine.SetPoints(points);
     
-    // Calculate sunrise and sunset
     _sunriseJulian = 0;
     _sunsetJulian = 0;
-    for (double t = _startJulian; t <= _endJulian; t += (1.0 / 1440.0))
+    if (sunriseJulianGuess != 0 && sunsetJulianGuess != 0)
     {
-      double latitudeDeg, longitudeDeg;
-      Map.AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
-      double degAway = Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
-      
-      if (degAway < 90.0 && _sunriseJulian == 0)
-        _sunriseJulian = t;
-      if (degAway > 90.0 && _sunriseJulian != 0 && _sunsetJulian == 0)
-        _sunsetJulian = t;
-    }
+      // Calculate sunrise
+      for (double t = sunriseJulianGuess; t > _startJulian; t -= (1.0 / 1440.0))
+      {
+        double latitudeDeg, longitudeDeg;
+        Map.AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
+        double degAway = Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
+        if (degAway >= 90.0)
+        {
+          _sunriseJulian = t;
+          break;
+        }
+      }
     
+      // Calculate sunset
+      for (double t = sunsetJulianGuess; t > _startJulian; t -= (1.0 / 1440.0))
+      {
+        double latitudeDeg, longitudeDeg;
+        Map.AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
+        double degAway = Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
+        if (degAway <= 90.0)
+        {
+          _sunsetJulian = t;
+          break;
+        }
+      }
+    }
   }
     
   if (nowJulian > _endJulianMoon || nowJulian < _startJulianMoon)
@@ -190,26 +215,35 @@ void SolarScene::updateOverride()
   // Setup the sunrise and sunset labels
   char formatStr[256];
   
-  auto sunriseLabelTime = Map.GetLocaltimeFromJulianDate(_sunriseJulian);
-  std::strftime(formatStr, 255, "%H:%M", &sunriseLabelTime );
-  _sunriseLabel.SetText(formatStr);
-  _sunriseLabel.SetFontStyle(FontStyle::Narrow);
-  _sunriseLabel.SetColor(0.5,0.375,0.0f,1.0f);
-  _sunriseLabel.SetPosition(round((_sunriseJulian - _startJulian) * _hScale), 80);
-  _sunriseLabel.SetAlignment(TextAlignment::Center);
+  if (_sunriseJulian != 0) 
+  {
+    auto sunriseLabelTime = Map.GetLocaltimeFromJulianDate(_sunriseJulian);
+    std::strftime(formatStr, 255, "%H:%M", &sunriseLabelTime );
+    _sunriseLabel.SetText(formatStr);
+    _sunriseLabel.SetFontStyle(FontStyle::Narrow);
+    _sunriseLabel.SetColor(0.5,0.375,0.0f,1.0f);
+    _sunriseLabel.SetPosition( MIN(round((_sunriseJulian - _startJulian) * _hScale), 50), 80);
+    _sunriseLabel.SetAlignment(TextAlignment::Center);
+  }
   
-  auto sunsetLabelTime = Map.GetLocaltimeFromJulianDate(_sunsetJulian);
-  std::strftime(formatStr, 255, "%H:%M", &sunsetLabelTime );
-  _sunsetLabel.SetText(formatStr);
-  _sunsetLabel.SetFontStyle(FontStyle::Narrow);
-  _sunsetLabel.SetColor(0.5,0.375,0.0f,1.0f);
-  _sunsetLabel.SetPosition(round((_sunsetJulian - _startJulian) * _hScale), 80);
-  _sunsetLabel.SetAlignment(TextAlignment::Center);
+  if (_sunsetJulian != 0) 
+  {
+    auto sunsetLabelTime = Map.GetLocaltimeFromJulianDate(_sunsetJulian);
+    std::strftime(formatStr, 255, "%H:%M", &sunsetLabelTime );
+    _sunsetLabel.SetText(formatStr);
+    _sunsetLabel.SetFontStyle(FontStyle::Narrow);
+    _sunsetLabel.SetColor(0.5,0.375,0.0f,1.0f);
+    _sunsetLabel.SetPosition(  MAX(round((_sunsetJulian - _startJulian) * _hScale), 142), 
+                               80);
+    _sunsetLabel.SetAlignment(TextAlignment::Center);
+  }
 }
 
 void SolarScene::drawOverride()
 {
-  _sunriseLabel.Draw();
+  if (_sunriseJulian != 0) 
+    _sunriseLabel.Draw();
+  if (_sunsetJulian != 0) 
   _sunsetLabel.Draw();
 
   _horizonLine.Draw();
