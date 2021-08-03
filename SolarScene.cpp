@@ -99,7 +99,7 @@ void SolarScene::updateOverride()
   if (nowJulian > _endJulian || nowJulian < _startJulian)
   {
     // Get the required julian dates
-    auto start = Map.GetMapTimeAsLocaltime();
+    auto start = Map.GetLocaltimeFromJulianDate(nowJulian);
     start.tm_sec = 0;
     start.tm_min = 0;
     start.tm_hour = 0;
@@ -143,11 +143,15 @@ void SolarScene::updateOverride()
   if (nowJulian > _endJulianMoon || nowJulian < _startJulianMoon)
   {
     // Get the required julian dates
-    auto start = Map.GetMapTimeAsLocaltime();
+    auto start = Map.GetLocaltimeFromJulianDate(nowJulian);
     start.tm_sec = 0;
     start.tm_min = 0;
     start.tm_hour = 12;
     _startJulianMoon = Map.GetJulianDateFromLocaltime(start);
+    
+    if (nowJulian < _startJulianMoon)
+      _startJulianMoon -= 1.0;
+    
     _endJulianMoon = _startJulianMoon+1.0;
     
     // Create the moon polyline
