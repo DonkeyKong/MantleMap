@@ -1,12 +1,18 @@
 [submodule "cpp-httplib"] 
-  path = cpp-httplib 
-  url = https://github.com/yhirose/cpp-httplib.git
-
+	path = deps/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib.git
 [submodule "fmt"]
-  path = fmt
-  url = https://github.com/fmtlib/fmt.git
-
+	path = deps/fmt
+	url = https://github.com/fmtlib/fmt.git
 [submodule "json"]
-  path = json
-  url = https://github.com/nlohmann/json.git
-
+	path = deps/json
+	url = https://github.com/nlohmann/json.git
+[submodule "deps/astro"]
+	path = deps/astro
+	url = https://github.com/brhamon/astro.git
+[submodule "deps/rpi-rgb-led-matrix"]
+	path = deps/rpi-rgb-led-matrix
+	url = https://github.com/hzeller/rpi-rgb-led-matrix.git
+[submodule "deps/libpng"]
+	path = deps/libpng
+	url = https://github.com/glennrp/libpng.git

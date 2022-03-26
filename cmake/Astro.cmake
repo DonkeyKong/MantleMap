@@ -1,0 +1,14 @@
+include(ExternalProject)
+
+find_program(MAKE_EXECUTABLE NAMES gmake make mingw32-make REQUIRED)
+
+set(astro_LIBRARY ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}astro${CMAKE_STATIC_LIBRARY_SUFFIX})
+
+ExternalProject_Add(astro
+    SOURCE_DIR ${PROJECT_SOURCE_DIR}/deps/astro
+    CONFIGURE_COMMAND ""
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/deps/astro
+    BUILD_COMMAND ${MAKE_EXECUTABLE} -j -C ${PROJECT_SOURCE_DIR}/deps/astro DE=430
+    INSTALL_COMMAND ${MAKE_EXECUTABLE} -j -C ${PROJECT_SOURCE_DIR}/deps/astro install prefix=${CMAKE_INSTALL_PREFIX}
+    BUILD_BYPRODUCTS ${astro_LIBRARY}
+)
