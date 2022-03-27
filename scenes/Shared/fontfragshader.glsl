@@ -1,3 +1,5 @@
+precision mediump float;
+
 varying vec2 vTexCoord;
 uniform sampler2D uFontTexture;
 uniform vec4 uColor;

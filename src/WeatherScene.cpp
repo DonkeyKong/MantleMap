@@ -1,7 +1,6 @@
 #include "WeatherScene.hpp"
 
-#define CPPHTTPLIB_OPENSSL_SUPPORT
-#include "cpp-httplib/httplib.h"
+#include <httplib.h>
 #include <nlohmann/json.hpp>
 #include <fmt/format.h>
 using json = nlohmann::json;
@@ -10,8 +9,8 @@ using json = nlohmann::json;
 #include <chrono>
 #include <string>
 
-static const char degChar[] {0xB0, 0x00};
-static const std::string deg(degChar);
+static const unsigned char degChar[] {0xB0, 0x00};
+static const std::string deg((char*)degChar);
 static const int INVALID_TEMP = -999;
 static const double earthRadiusKm = 6371;
 

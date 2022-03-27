@@ -27,9 +27,9 @@ SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetim
   _sunriseJulian = 0;
   _sunsetJulian = 0;
   
-  _horizonLine.AddPoint({ 0, _vOffset + 90.0f * _vScale, 0,
+  _horizonLine.AddPoint({ 0, (float)_vOffset + 90.0f * (float)_vScale, 0,
                           0.2f, 0.2f, 0.2f, 1.0f});
-  _horizonLine.AddPoint({ 1.0f * _hScale, _vOffset + 90.0f * _vScale, 0,
+  _horizonLine.AddPoint({ 1.0f * (float)_hScale, (float)_vOffset + 90.0f * (float)_vScale, 0,
     0.2f, 0.2f, 0.2f, 1.0f});
   _horizonLine.SetThickness(2.0f);
     
@@ -120,8 +120,8 @@ void SolarScene::updateOverride()
       double degAway = Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
       points.push_back(
       {
-        (t - _startJulian) * _hScale,
-        _vOffset + degAway * _vScale,
+        (float)((t - _startJulian) * _hScale),
+        (float)(_vOffset + degAway * _vScale),
         0,
         0.5f, 0.5f, 0.25f, 1.0f
       });
@@ -187,8 +187,8 @@ void SolarScene::updateOverride()
       Map.AstronomyService.GetLunarPoint(t, latitudeDeg, longitudeDeg);
       points.push_back(
       {
-        (t - _startJulianMoon) * _hScale,
-        _vOffset + Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg) * _vScale,
+        (float)((t - _startJulianMoon) * _hScale),
+        (float)(_vOffset + Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg) * _vScale),
         0,
         0.25f, 0.25f, 0.5f, 1.0f
       });

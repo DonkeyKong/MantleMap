@@ -8,7 +8,15 @@
 
 using json = nlohmann::json;
 
+#ifdef PI_HOST
 static const std::string CONFIG_PATH = "/boot/MantleMapConfig.json";
+static const std::string SCENES_PATH = "/home/pi/MantleMap/scenes";
+static const std::string EPHEMERIDES_PATH = "/home/pi/MantleMap/de430/linux_p1550p2650.430";
+#else
+static const std::string CONFIG_PATH = "MantleMapConfig.json";
+static const std::string SCENES_PATH = "scenes";
+static const std::string EPHEMERIDES_PATH = "linux_p1550p2650.430";
+#endif
 
 static double getJulianFromUnix( double unixSecs )
 {
@@ -46,8 +54,8 @@ MapState::MapState()
   lightAdjustEnabled = GetConfigValue("lightAdjustEnabled", true);
   
   // System settings
-  sceneResourcePath = GetConfigValue("sceneResourcePath", std::string("/home/pi/MantleMap/scenes"));
-  ephemeridesPath = GetConfigValue("ephemeridesPath", std::string("/home/pi/MantleMap/de430/linux_p1550p2650.430"));
+  sceneResourcePath = GetConfigValue("sceneResourcePath", SCENES_PATH);
+  ephemeridesPath = GetConfigValue("ephemeridesPath", EPHEMERIDES_PATH);
   defaultScene = GetConfigValue("defaultScene", std::string("Solar"));
   
   // Don't overwrite a misread file, but feel free to overwrite

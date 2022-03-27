@@ -1,5 +1,3 @@
-#pragma once
-
 #include "GLRenderContext.hpp"
 
 #include <stdio.h>
@@ -11,7 +9,10 @@
 #include <time.h>
 #include <unistd.h>
 #include <iostream>
+
+#ifdef PI_HOST
 #include <bcm_host.h>
+#endif
 
 #define check() assert(glGetError() == 0)
 
@@ -47,8 +48,11 @@ void GLRenderContext::initGL()
 {
 	EGLint num_config;
   EGLBoolean result;
+
+  #ifdef PI_HOST
   // Init the GPU hardware
 	bcm_host_init();
+  #endif
 	
   // Get an EGL display connection
   GDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);

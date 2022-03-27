@@ -3,6 +3,7 @@
 #include "GLES2/gl2.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
+
 #include <string>
 
 class GfxShader
@@ -35,7 +36,7 @@ public:
 	GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_path);
 	GLuint GetId() { return Id; }
 	bool isLoaded;
-  bool checkProgram();
+  bool checkProgram(std::string vertName, std::string fragName);
   void SetUniform(const char* name, bool value);
 	void SetUniform(const char* name, float value);
 	void SetUniform(const char * name, int value);

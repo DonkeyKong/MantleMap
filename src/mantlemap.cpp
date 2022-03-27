@@ -188,7 +188,7 @@ static void executeCommand(const char* src, const char* cmd, MapState& mapState)
     }
 }
 
-void renderThread(MapState* map, const RGBMatrix::Options& matrixParams, const rgb_matrix::RuntimeOptions& runtimeParams)
+void renderThread(MapState* map)
 {  
   // Create the output display device (LED panel, window, etc)
   DisplayDevice display(*map);
@@ -227,7 +227,7 @@ void renderThread(MapState* map, const RGBMatrix::Options& matrixParams, const r
     
     if (map->GetSleep())
     {
-      display.Sleep();
+      display.Clear();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     else
@@ -279,28 +279,6 @@ int main(int argc, char *argv[])
   
   MapState mapState;
   
-  // Mantle map parameters
-  int cols = 64;
-  int rows = 32;
-  int chainLength = 3;
-  int parallelLength = 3;
-  int slowdown = 2;
-  
-  // Move params into structures
-  RGBMatrix::Options matrixParams;
-  //std::string hardware_mapping = "regular";
-  matrixParams.rows = rows;
-  matrixParams.cols = cols;
-  matrixParams.chain_length = chainLength;
-  matrixParams.hardware_mapping = "regular";
-  matrixParams.parallel = parallelLength;
-  matrixParams.pwm_lsb_nanoseconds = 200;
-  matrixParams.brightness = 100;
-  matrixParams.pwm_bits = 6;
-  rgb_matrix::RuntimeOptions runtimeParams;
-  runtimeParams.do_gpio_init = true;
-  runtimeParams.gpio_slowdown = slowdown;
-  
   // Create the scene library
   DebugTransformScene debugScene(mapState);
   LightScene lightScene(mapState);
@@ -328,7 +306,7 @@ int main(int argc, char *argv[])
   // Save the config after opening all the scenes
   mapState.SaveConfig();
   
-  std::thread t(&renderThread, &mapState, matrixParams, runtimeParams);
+  std::thread t(&renderThread, &mapState);
   
   printCmdMenu();
   int stdInFailCount = 0;

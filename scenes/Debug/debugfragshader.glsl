@@ -1,3 +1,5 @@
+precision mediump float;
+
 // Uniforms
 uniform vec2 uScale;
 uniform sampler2D uLonLatLut;

@@ -2,6 +2,7 @@
 #define M_HALFPI 1.57079633
 #define M_DAWNANGLE 0.2
 
+precision mediump float;
 varying vec4 v_Colour;
 
 // Uniforms

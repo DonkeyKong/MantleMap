@@ -4,11 +4,6 @@
 #include "LoadShaders.hpp"
 #include "MapState.hpp"
 
-#include "EGL/egl.h"
-#include "EGL/eglplatform.h"
-#include "GLES2/gl2.h"
-#include "EGL/eglext.h"
-
 #include <vector>
 #include <string>
 #include <mutex>

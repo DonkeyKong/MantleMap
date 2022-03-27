@@ -87,27 +87,29 @@ GfxProgram::GfxProgram()
   isLoaded = false;
 }
 
-GLuint GfxProgram::LoadShaders(const char * vertex_file_path,const char * fragment_file_path)
+GLuint GfxProgram::LoadShaders(const char * vertex_file_path, const char * fragment_file_path)
 {
+
   VertexShader.LoadVertexShader(vertex_file_path);
   FragmentShader.LoadFragmentShader(fragment_file_path);
   Id = glCreateProgram();
   glAttachShader(Id, VertexShader.GetId());
   glAttachShader(Id, FragmentShader.GetId());
   glLinkProgram(Id);
-  checkProgram();
+  checkProgram(vertex_file_path, fragment_file_path);
   glUseProgram(GetId());
   check();
   isLoaded = true;
   return GetId();
 }
 
-bool GfxProgram::checkProgram()
+bool GfxProgram::checkProgram(std::string vertName, std::string fragName)
 {
   GLint isCompiled = 0;
   glGetProgramiv(Id, GL_LINK_STATUS, &isCompiled);
   if(isCompiled == GL_FALSE)
   {
+    std::cout << "Failed to compile program: " << vertName << " + " << fragName << std::endl;
     GLint maxLength = 0;
     glGetProgramiv(Id, GL_INFO_LOG_LENGTH, &maxLength);
     
@@ -197,12 +199,12 @@ GLuint LoadImageToTexture(std::string imagePath)
 GLuint LoadImageToTexture(std::string imagePath, int& imageWidth, int& imageHeight)
 {
   // Read the map texture image from disk
-  Image image;
-  imageWidth = -1;
-  imageHeight = -1;
+  imageWidth = 64;
+  imageHeight = 64;
   GLuint texID = 0;
   
   // TBD: Replace with libpng code
+  //Image image;
   // try
   // {
   //   // Read a file into image object
@@ -216,7 +218,7 @@ GLuint LoadImageToTexture(std::string imagePath, int& imageWidth, int& imageHeig
   
   // imageWidth = image.columns();
   // imageHeight = image.rows();
-  // std::vector<unsigned char> data(imageWidth*imageHeight*4);
+  std::vector<unsigned char> data(imageWidth*imageHeight*4);
   // image.write(0,0,imageWidth,imageHeight,"RGBA", Magick::CharPixel, &data[0]);
   
   glGenTextures(1, &texID);

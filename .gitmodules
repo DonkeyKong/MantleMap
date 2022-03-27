@@ -7,12 +7,12 @@
 [submodule "json"]
 	path = deps/json
 	url = https://github.com/nlohmann/json.git
-[submodule "deps/astro"]
-	path = deps/astro
-	url = https://github.com/brhamon/astro.git
 [submodule "deps/rpi-rgb-led-matrix"]
 	path = deps/rpi-rgb-led-matrix
 	url = https://github.com/hzeller/rpi-rgb-led-matrix.git
 [submodule "deps/libpng"]
 	path = deps/libpng
 	url = https://github.com/glennrp/libpng.git
+[submodule "astro"]
+	path = deps/astro
+	url = https://github.com/DonkeyKong/astro.git

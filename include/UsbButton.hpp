@@ -13,5 +13,4 @@ private:
     std::unique_ptr<Impl> pImpl_;
 };
 
-#endif
 

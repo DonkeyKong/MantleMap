@@ -137,7 +137,7 @@ struct UsbButton::Impl
 
 UsbButton::UsbButton() {}
 
-~UsbButton() {}
+UsbButton::~UsbButton() {}
 
 bool UsbButton::pressed() 
 { 

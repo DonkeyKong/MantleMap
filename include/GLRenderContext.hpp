@@ -1,9 +1,6 @@
 #pragma once
 
-#include "Scene.hpp"
 #include "MapState.hpp"
-
-#include "led-matrix.h"
 
 #include "EGL/egl.h"
 #include "EGL/eglplatform.h"
@@ -18,7 +15,6 @@ class GLRenderContext
     
     // Draw the specified scene to the RGB matrix
     void BeginDraw();
-    void FinishDraw(rgb_matrix::FrameCanvas* canvas);
 
   private:
     void initGL();
