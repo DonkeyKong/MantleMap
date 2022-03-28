@@ -188,17 +188,46 @@ static void executeCommand(const char* src, const char* cmd, MapState& mapState)
     }
 }
 
-void renderThread(MapState* map)
-{  
-  // Create the output display device (LED panel, window, etc)
-  DisplayDevice display(*map);
+int main(int argc, char *argv[]) 
+{
+  // Subscribe to signal interrupts
+  signal(SIGTERM, InterruptHandler);
+  signal(SIGINT, InterruptHandler);
   
-  // Create our hardware accelerated renderer
-  GLRenderContext render(*map);
+  // Create the settings object used throughout the components
+  MapState mapState;
+  
+  // Create the scene library
+  DebugTransformScene debugScene(mapState);
+  LightScene lightScene(mapState);
+  MapTimeScene mapTimeScene(mapState);
+  WeatherScene weatherScene(mapState);
+  CmdDebugScene cmdDebugScene(mapState);
+  SolarScene solarScene(mapState);
+  
+  addScene(&debugScene);
+  addScene(&solarScene);
+  addScene(&lightScene);
+  addScene(&mapTimeScene);
+  addScene(&weatherScene);
+  addScene(&cmdDebugScene);
+  cmdDebugScenePtr = &cmdDebugScene;
+  
+  // By default, always show mapTime, weather, and cmdDebug
+  mapTimeScene.Show();
+  weatherScene.Show();
+  cmdDebugScene.Show();
+  
+  // Bring up the default base scene
+  swapBaseScene(mapState.defaultScene);
+  
+  // Save the config after opening all the scenes
+  mapState.SaveConfig();
 
-  // Create the button we listen to for sleep commands
-  UsbButton button;
-  
+  // Create our hardware accelerated renderer
+  GLRenderContext render(mapState);
+
+  // Initialize all the scenes
   for (Scene* scene : baseScenes) 
   {
     scene->InitGL();
@@ -209,23 +238,37 @@ void renderThread(MapState* map)
     scene->InitGL();
   }
 
+  // Create the output display device (LED panel, window, etc)
+  DisplayDevice display(mapState);
+
+  // Create the button we listen to for sleep commands
+  UsbButton button;
+
+  // Start the main render loop!
   while (!interrupt_received && !internal_exit) 
   {
+    // Handle display events
+    if (!display.ProcessEvents())
+    {
+      internal_exit = true;
+    }
+
+    // Handle button events
     while (button.pressed())
     {
-      if (map->GetSleep())
+      if (mapState.GetSleep())
       {
         // Wake and reset if sleeping
-        executeCommand("Button", "reset", *map);
+        executeCommand("Button", "reset", mapState);
       }
       else
       {
         // Sleep if awake
-        executeCommand("Button", "sleep", *map);
+        executeCommand("Button", "sleep", mapState);
       }
     }
     
-    if (map->GetSleep())
+    if (mapState.GetSleep())
     {
       display.Clear();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -258,73 +301,22 @@ void renderThread(MapState* map)
       
       display.Update();
     }
-  }
 
-  if (interrupt_received) 
-  {
-    fprintf(stderr, "Render thread caught signal. Exiting.\n");
-  }
-  
-  if (internal_exit) 
-  {
-    fprintf(stderr, "Render thread got internal exit request\n");
-  }
-}
+    // Evaluate message loop at 60FPS
+    // std::this_thread::sleep_for(std::chrono::microseconds(16666));
 
-int main(int argc, char *argv[]) 
-{
-  // Subscribe to signal interrupts
-  signal(SIGTERM, InterruptHandler);
-  signal(SIGINT, InterruptHandler);
-  
-  MapState mapState;
-  
-  // Create the scene library
-  DebugTransformScene debugScene(mapState);
-  LightScene lightScene(mapState);
-  MapTimeScene mapTimeScene(mapState);
-  WeatherScene weatherScene(mapState);
-  CmdDebugScene cmdDebugScene(mapState);
-  SolarScene solarScene(mapState);
-  
-  addScene(&debugScene);
-  addScene(&solarScene);
-  addScene(&lightScene);
-  addScene(&mapTimeScene);
-  addScene(&weatherScene);
-  addScene(&cmdDebugScene);
-  cmdDebugScenePtr = &cmdDebugScene;
-  
-  // By default, always show mapTime, weather, and cmdDebug
-  mapTimeScene.Show();
-  weatherScene.Show();
-  cmdDebugScene.Show();
-  
-  // Bring up the default base scene
-  swapBaseScene(mapState.defaultScene);
-  
-  // Save the config after opening all the scenes
-  mapState.SaveConfig();
-  
-  std::thread t(&renderThread, &mapState);
-  
-  printCmdMenu();
-  int stdInFailCount = 0;
-  
-  while (!interrupt_received && !internal_exit) 
-  {
-    std::string command;
-    //std::cout << "> " << std::flush; // This chatters in the logs
-    if (stdInFailCount < 20 && std::getline (std::cin, command))
-    {
-      executeCommand("StdIn", command.c_str(), mapState);
-    }
-    else
-    {
-      if (stdInFailCount < 1000)
-        stdInFailCount++;
-      sleep(1); // sleep for a second after getting stdin fails
-    }
+    // std::string command;
+    // //std::cout << "> " << std::flush; // This chatters in the logs
+    // if (stdInFailCount < 20 && std::getline (std::cin, command))
+    // {
+    //   executeCommand("StdIn", command.c_str(), mapState);
+    // }
+    // else
+    // {
+    //   if (stdInFailCount < 1000)
+    //     stdInFailCount++;
+    //   sleep(1); // sleep for a second after getting stdin fails
+    // }
   }
 
   if (interrupt_received) 
@@ -336,8 +328,6 @@ int main(int argc, char *argv[])
   {
     fprintf(stderr, "Main thread got internal exit request.\n");
   }
-  
-  t.join();
 
   return 0;
 }

@@ -5,18 +5,19 @@
 #include "EGL/eglext.h"
 
 #include <string>
+#include <vector>
 
 class GfxShader
 {
-	GLchar* Src;
+	std::vector<GLchar> Src;
 	GLuint Id;
 	GLuint GlShaderType;
   bool checkShader();
 
 public:
 
-	GfxShader() : Src(NULL), Id(0), GlShaderType(0) {}
-	~GfxShader() { if(Src) delete[] Src; }
+	GfxShader() : Id(0), GlShaderType(0) {}
+	~GfxShader() {  }
 
 	bool LoadVertexShader(const char* filename);
 	bool LoadFragmentShader(const char* filename);

@@ -1,11 +1,11 @@
 #include "LoadShaders.hpp"
+#include "ImageRGBA.hpp"
 
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <iostream>
-#include <vector>
 #include <assert.h>
 
 #define check() assert(glGetError() == 0)
@@ -39,47 +39,48 @@ bool GfxShader::checkShader()
 
 bool GfxShader::LoadFragmentShader(const char* filename)
 {
-        //cheeky bit of code to read the whole file into memory
-        assert(!Src);
-        FILE* f = fopen(filename, "rb");
-        assert(f);
-        fseek(f,0,SEEK_END);
-        int sz = ftell(f);
-        fseek(f,0,SEEK_SET);
-        Src = new GLchar[sz+1];
-        fread(Src,1,sz,f);
-        Src[sz] = 0; //null terminate it!
-        fclose(f);
+  assert(Src.size()==0);
+  FILE* f = fopen(filename, "rb");
+  assert(f);
+  fseek(f,0,SEEK_END);
+  int sz = ftell(f);
+  fseek(f,0,SEEK_SET);
+  Src.clear();
+  Src.resize(sz+1);
+  fread(Src.data(),1,sz,f);
+  Src[sz] = 0; //null terminate it!
+  fclose(f);
 
-        //now create and compile the shader
-        Id = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(Id, 1, (const GLchar**)&Src, 0);
-        glCompileShader(Id);
-        return checkShader();
+  //now create and compile the shader
+  GLchar* sourcePtr = Src.data();
+  Id = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(Id, 1, &sourcePtr, 0);
+  glCompileShader(Id);
+  return checkShader();
 }
 
 bool GfxShader::LoadVertexShader(const char* filename)
 {
+  assert(Src.size()==0);
+  FILE* f = fopen(filename, "rb");
+  assert(f);
+  fseek(f,0,SEEK_END);
+  int sz = ftell(f);
+  fseek(f,0,SEEK_SET);
+  Src.clear();
+  Src.resize(sz+1);
+  fread(Src.data(),1,sz,f);
+  Src[sz] = 0; //null terminate it!
+  fclose(f);
 
-        //cheeky bit of code to read the whole file into memory
-        assert(!Src);
-        FILE* f = fopen(filename, "rb");
-        assert(f);
-        fseek(f,0,SEEK_END);
-        int sz = ftell(f);
-        fseek(f,0,SEEK_SET);
-        Src = new GLchar[sz+1];
-        fread(Src,1,sz,f);
-        Src[sz] = 0; //null terminate it!
-        fclose(f);
+  //now create and compile the shader
+  GLchar* sourcePtr = Src.data();
+  GlShaderType = GL_VERTEX_SHADER;
+  Id = glCreateShader(GlShaderType);
+  glShaderSource(Id, 1, &sourcePtr, 0);
+  glCompileShader(Id);
 
-        //now create and compile the shader
-        GlShaderType = GL_VERTEX_SHADER;
-        Id = glCreateShader(GlShaderType);
-        glShaderSource(Id, 1, (const GLchar**)&Src, 0);
-        glCompileShader(Id);
-
-        return checkShader();
+  return checkShader();
 }
 
 GfxProgram::GfxProgram() 
@@ -198,32 +199,14 @@ GLuint LoadImageToTexture(std::string imagePath)
 
 GLuint LoadImageToTexture(std::string imagePath, int& imageWidth, int& imageHeight)
 {
-  // Read the map texture image from disk
-  imageWidth = 64;
-  imageHeight = 64;
+  ImageRGBA image(imagePath);
   GLuint texID = 0;
-  
-  // TBD: Replace with libpng code
-  //Image image;
-  // try
-  // {
-  //   // Read a file into image object
-  //   image.read( imagePath );
-  // }
-  // catch( Magick::Exception &error_ )
-  // {
-  //   std::cout << "Caught exception: " << error_.what() << std::endl;
-  //   return texID;
-  // }
-  
-  // imageWidth = image.columns();
-  // imageHeight = image.rows();
-  std::vector<unsigned char> data(imageWidth*imageHeight*4);
-  // image.write(0,0,imageWidth,imageHeight,"RGBA", Magick::CharPixel, &data[0]);
+  imageWidth = image.width();
+  imageHeight = image.height();
   
   glGenTextures(1, &texID);
   glBindTexture(GL_TEXTURE_2D, texID);
-  glTexImage2D(GL_TEXTURE_2D, 0 , GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &data[0]);
+  glTexImage2D(GL_TEXTURE_2D, 0 , GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   

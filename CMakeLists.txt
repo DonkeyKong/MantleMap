@@ -33,6 +33,8 @@ if (APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
 set(PNG_ARM_NEON on)
 endif()
 add_subdirectory("deps/libpng")
+set(PNG_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/deps/libpng
+                    ${CMAKE_CURRENT_BINARY_DIR}/deps/libpng)
 
 add_executable( ${PROJECT_NAME} 
                     src/Astronomy.cpp
@@ -40,6 +42,7 @@ add_executable( ${PROJECT_NAME}
                     src/DebugTransformScene.cpp
                     src/DisplayDevice.cpp
                     src/GLRenderContext.cpp
+                    src/ImageRGBA.cpp
                     src/LightScene.cpp
                     src/LoadShaders.cpp
                     src/mantlemap.cpp
@@ -64,7 +67,7 @@ else()
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE include ${PNG_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} fmt nlohmann_json httplib png astro angle OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(${PROJECT_NAME} fmt nlohmann_json httplib png_static astro angle OpenSSL::SSL OpenSSL::Crypto)
 
 add_custom_target(copy_scenes ALL)
 

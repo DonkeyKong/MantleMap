@@ -13,6 +13,11 @@ Astronomy::Astronomy()
 
 }
 
+Astronomy::~Astronomy()
+{
+  ephem_close();
+}
+
 void Astronomy::Init(std::string ephemeridesPath)
 {
   char workpath[1024];
@@ -36,11 +41,6 @@ void Astronomy::Init(std::string ephemeridesPath)
   
   make_object(0, the_planets[9].id, (char*)the_planets[9].name, &dummy_star, &sol);
   make_object(0, the_planets[10].id, (char*)the_planets[10].name, &dummy_star, &lun);
-}
-
-Astronomy::~Astronomy()
-{
-  ephem_close();
 }
 
 static void normalizeAngleDegrees(double& angle)

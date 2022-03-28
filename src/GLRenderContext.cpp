@@ -117,6 +117,10 @@ void GLRenderContext::initGL()
 
 void GLRenderContext::BeginDraw()
 {
+  // Sometimes we have a context for the display
+  // make the render contenxt current here just in case
+  eglMakeCurrent(GDisplay, GSurface, GSurface, GContext);
+
   // Set "RenderedTexture" as color attachement #0
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderedTexture, 0);
 

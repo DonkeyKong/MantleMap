@@ -9,7 +9,9 @@
 class DisplayDevice final
 {
     public:
+        // Display devices must be constructed in the main thread
         DisplayDevice(MapState& map);
+
         ~DisplayDevice();
 
         // Use glReadPixels to get the rendered image and display it
@@ -18,6 +20,11 @@ class DisplayDevice final
 
         // Clear the display and if possible, enter a low power state
         void Clear();
+
+        // ProcessEvents must be called from the main thread and
+        // if it returns false, that means the window has closed
+        // and the program should exit
+        bool ProcessEvents();
 
     private:
         struct Impl;
