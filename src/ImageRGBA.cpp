@@ -7,6 +7,7 @@
 #include <stdarg.h>
 
 #include <png.h>
+#include <qrcodegen.hpp>
 
 static void abort_(const char *s, ...)
 {
@@ -18,13 +19,51 @@ static void abort_(const char *s, ...)
     abort();
 }
 
-ImageRGBA::ImageRGBA(std::string imagePath)
+ImageRGBA::ImageRGBA()
 {
-    width_ = -1;
-    height_ = -1;
+    width_ = 0;
+    height_ = 0;
+}
 
-    // Try loading the image from the file
-    read_png_file(imagePath.c_str());
+ImageRGBA::ImageRGBA(int width, int height)
+{
+    width_ = width;
+    height_ = height;
+    data_.resize(width_ * height_ * 4);
+}
+
+ImageRGBA ImageRGBA::FromPngFile(std::string imagePath)
+{
+    ImageRGBA image;
+    image.read_png_file(imagePath.c_str());
+    return image;
+}
+
+ImageRGBA ImageRGBA::FromQrPayload(std::string qrPayload)
+{
+    ImageRGBA image;
+    
+    auto qr = qrcodegen::QrCode::encodeText(qrPayload.c_str(), qrcodegen::QrCode::Ecc::MEDIUM);
+    const int quietZoneSize = 2;
+    image.width_ = qr.getSize() + quietZoneSize * 2;
+    image.height_ = qr.getSize() + quietZoneSize * 2;
+    image.data_.resize(image.width_ * image.height_ * 4);
+    auto dataPtr = image.data();
+
+    for (int y = -quietZoneSize; y < qr.getSize() + quietZoneSize; y++)
+    {
+        for (int x = -quietZoneSize; x < qr.getSize() + quietZoneSize; x++)
+        {
+            bool pxIsDark = qr.getModule(x,y);
+            dataPtr[0] = pxIsDark ? 0 : 255;
+            dataPtr[1] = pxIsDark ? 0 : 255;
+            dataPtr[2] = pxIsDark ? 0 : 255;
+            dataPtr[3] = 255;
+            dataPtr += 4;
+        }
+    }
+    
+    return image;
 }
 
 void ImageRGBA::read_png_file(const char* file_name)
@@ -124,4 +163,9 @@ int ImageRGBA::width()
 int ImageRGBA::height()
 {
     return height_;
+}
+
+uint8_t& ImageRGBA::operator[](std::size_t idx)
+{
+    return data_[idx];
 }

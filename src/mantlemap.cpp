@@ -6,6 +6,7 @@
 #include "LightScene.hpp"
 #include "MapTimeScene.hpp"
 #include "CmdDebugScene.hpp"
+#include "ConfigCodeScene.hpp"
 #include "DebugTransformScene.hpp"
 #include "SolarScene.hpp"
 #include "WeatherScene.hpp"
@@ -204,6 +205,7 @@ int main(int argc, char *argv[])
   WeatherScene weatherScene(mapState);
   CmdDebugScene cmdDebugScene(mapState);
   SolarScene solarScene(mapState);
+  ConfigCodeScene configScene(mapState);
   
   addScene(&debugScene);
   addScene(&solarScene);
@@ -211,12 +213,14 @@ int main(int argc, char *argv[])
   addScene(&mapTimeScene);
   addScene(&weatherScene);
   addScene(&cmdDebugScene);
+  addScene(&configScene);
   cmdDebugScenePtr = &cmdDebugScene;
   
   // By default, always show mapTime, weather, and cmdDebug
   mapTimeScene.Show();
   weatherScene.Show();
   cmdDebugScene.Show();
+  configScene.Show();
   
   // Bring up the default base scene
   swapBaseScene(mapState.defaultScene);
@@ -227,22 +231,17 @@ int main(int argc, char *argv[])
   // Create our hardware accelerated renderer
   GLRenderContext render(mapState);
 
-  // Initialize all the scenes
-  for (Scene* scene : baseScenes) 
-  {
-    scene->InitGL();
-  }
-
-  for (Scene* scene : overlayScenes) 
-  {
-    scene->InitGL();
-  }
-
   // Create the output display device (LED panel, window, etc)
   DisplayDevice display(mapState);
 
   // Create the button we listen to for sleep commands
   UsbButton button;
+
+  auto thisFrameComplete = std::chrono::high_resolution_clock::now();
+  auto lastFrameComplete = std::chrono::high_resolution_clock::now();
+
+  // This is 1/60th of a second in nanoseconds
+  auto expectedFrameTime = std::chrono::high_resolution_clock::duration(std::chrono::nanoseconds(16666667));
 
   // Start the main render loop!
   while (!interrupt_received && !internal_exit) 
@@ -267,7 +266,10 @@ int main(int argc, char *argv[])
         executeCommand("Button", "sleep", mapState);
       }
     }
+
+    // TBD: handle REST events
     
+    // Update/Draw the map
     if (mapState.GetSleep())
     {
       display.Clear();
@@ -300,6 +302,11 @@ int main(int argc, char *argv[])
       }
       
       display.Update();
+
+      // Regulate framerate to cap at 60 FPS
+      thisFrameComplete = std::chrono::high_resolution_clock::now();
+      std::this_thread::sleep_until(lastFrameComplete+expectedFrameTime);
+      lastFrameComplete = thisFrameComplete;
     }
 
     // Evaluate message loop at 60FPS

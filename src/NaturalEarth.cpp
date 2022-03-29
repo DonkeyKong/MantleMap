@@ -116,9 +116,9 @@ bool NaturalEarth::mapInverse(int x, int y, Point2D& out)
   return mapInverse(scaled, out);
 }
 
-std::vector<unsigned char> NaturalEarth::getInvLookupTable()
+ImageRGBA NaturalEarth::getInvLookupTable()
 {
-  std::vector<unsigned char> lut(_map.width * _map.height * 4);
+  ImageRGBA lut(_map.width , _map.height);
 
   Point2D lonLat;
   for (int y=0; y < _map.height; y++)

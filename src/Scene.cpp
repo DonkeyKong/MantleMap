@@ -6,16 +6,9 @@
 #define check() assert(glGetError() == 0)
 
 Scene::Scene(MapState& map, SceneType sceneType, SceneLifetime sceneLifetime) : 
-  Map(map),
-  projection(map),
-  fullscreen_rect_vertex_buffer_data
-  { 
-    0.0f, (float)map.height, 0.0f,
-    0.0f,  0.0f, 0.0f,
-    (float)map.width, (float)map.height, 0.0f,
-    (float)map.width,  0.0f, 0.0f
-  }
+  map(map)
 {
+  _initGLDone = false;
   _isVisible = false;
   _sceneType = sceneType;
   _sceneLifetime = sceneLifetime;
@@ -29,12 +22,12 @@ Scene::~Scene()
 
 std::string Scene::GetResourcePath(std::string resourceName)
 {
-  auto filePath = std::filesystem::path(Map.sceneResourcePath) / SceneResourceDir() / resourceName;
+  auto filePath = std::filesystem::path(map.sceneResourcePath) / SceneResourceDir() / resourceName;
   if (std::filesystem::exists(filePath))
   {
     return filePath;
   }
-  filePath = std::filesystem::path(Map.sceneResourcePath) / "Shared" / resourceName;
+  filePath = std::filesystem::path(map.sceneResourcePath) / "Shared" / resourceName;
   if (std::filesystem::exists(filePath))
   {
     return filePath;
@@ -42,20 +35,14 @@ std::string Scene::GetResourcePath(std::string resourceName)
   return std::string();
 }
 
-void Scene::InitGL()
+void Scene::initGL()
 {
-  // Create the LonLatLookupTexture
-  std::vector<unsigned char> lut = projection.getInvLookupTable();
-  
-  glGenTextures(1, &LonLatLookupTexture);
-  glBindTexture(GL_TEXTURE_2D, LonLatLookupTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0 , GL_RGBA, Map.width, Map.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &lut[0]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  check();
-  
-  initGLOverride();
-  check();
+  if (!_initGLDone)
+  {    
+    initGLOverride();
+    check();
+    _initGLDone = true;
+  }
 }
 
 void Scene::Reset(bool animate)
@@ -110,7 +97,10 @@ void Scene::Draw()
 {
   if (_isVisible)
   {
+    initGL();
+    check();
     drawOverride();
+    check();
   }
 }
 
@@ -127,27 +117,32 @@ void Scene::initGLOverride()
 
 void Scene::drawOverride()
 {
-// Do nothing, child objects should override
+  // Default behavior is just to draw all children
+  for (auto element : Elements)
+  {
+    element->Draw();
+    check();
+  }
 }
 
 void Scene::updateOverride()
 {
-// Do nothing, child objects should override
+  // Do nothing, child objects should override
 }
 
 void Scene::showOverride()
 {
-// Do nothing, child objects should override
+  // Do nothing, child objects should override
 }
 
 void Scene::hideOverride()
 {
-// Do nothing, child objects should override
+  // Do nothing, child objects should override
 }
 
 void Scene::resetOverride(bool animate)
 {
-// Do nothing, child objects should override
+  // Do nothing, child objects should override
 }
 
 void Scene::baseSceneChangedOverride(std::string baseSceneName)
@@ -179,22 +174,4 @@ GLuint Scene::loadImageToTexture(std::string resourceName)
 GfxProgram Scene::loadGraphicsProgram(std::string vertShaderName, std::string fragShaderName)
 {
   return LoadGraphicsProgram(GetResourcePath(vertShaderName), GetResourcePath(fragShaderName));
-}
-
-void Scene::drawMapRect()
-{
-  glVertexAttribPointer(
-                        0, //vertexPosition_modelspaceID, // The attribute we want to configure
-                        3,                  // size
-                        GL_FLOAT,           // type
-                        GL_FALSE,           // normalized?
-                        0,                  // stride
-                        fullscreen_rect_vertex_buffer_data // (void*)0            // array buffer offset
-                );
-
-   // see above glEnableVertexAttribArray(vertexPosition_modelspaceID);
-   glEnableVertexAttribArray ( 0 );
-
-  // Draw the triangles!
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }

@@ -1,5 +1,4 @@
 #include "LoadShaders.hpp"
-#include "ImageRGBA.hpp"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -90,7 +89,6 @@ GfxProgram::GfxProgram()
 
 GLuint GfxProgram::LoadShaders(const char * vertex_file_path, const char * fragment_file_path)
 {
-
   VertexShader.LoadVertexShader(vertex_file_path);
   FragmentShader.LoadFragmentShader(fragment_file_path);
   Id = glCreateProgram();
@@ -191,6 +189,37 @@ void GfxProgram::SetCameraFromPixelTransform(int mapWidth, int mapHeight)
   }
 }
 
+void GfxProgram::SetCameraFromPixelTransform(float mapWidth, float mapHeight, float x, float y, float scale)
+{
+  // Camera space is like this:
+  //////////////////////////////
+  //           (0,1)          //
+  //             |            //
+  //             |            //
+  // (-1,0)----(0,0)----(1,0) //
+  //             |            //
+  //             |            //
+  //           (0,-1)         //
+  //////////////////////////////
+
+  // But our app acts like everything is in pixel space on the map
+  float sX = (scale / mapWidth) * 2.0f;
+  float sY = -(scale / mapHeight) * 2.0f;
+  float tX = (2.0 / mapWidth) * x - 1.0f;
+  float tY = -(2.0 / mapHeight) * y + 1.0f;
+
+  float xform[] = {   sX,     0.0f,   0.0f,   tX,
+                      0.0f,   sY,     0.0f,   tY,
+                      0.0f,   0.0f,   1.0f,   0.0f,
+                      0.0f,   0.0f,   0.0f,   1.0f };
+
+  GLint loc = glGetUniformLocation(GetId(), "uCameraFromPixelTransform");
+  if (loc != -1)
+  {
+    glUniformMatrix4fv(	loc, 1, GL_TRUE, xform);
+  }
+}
+
 GLuint LoadImageToTexture(std::string imagePath)
 {
   int width, height;
@@ -199,18 +228,29 @@ GLuint LoadImageToTexture(std::string imagePath)
 
 GLuint LoadImageToTexture(std::string imagePath, int& imageWidth, int& imageHeight)
 {
-  ImageRGBA image(imagePath);
-  GLuint texID = 0;
+  ImageRGBA image = ImageRGBA::FromPngFile(imagePath);
   imageWidth = image.width();
   imageHeight = image.height();
-  
+
+  return LoadImageToTexture(image);
+}
+
+GLuint LoadImageToTexture(ImageRGBA& image)
+{
+  GLuint texID = 0;
   glGenTextures(1, &texID);
   glBindTexture(GL_TEXTURE_2D, texID);
-  glTexImage2D(GL_TEXTURE_2D, 0 , GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+  glTexImage2D(GL_TEXTURE_2D, 0 , GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   
   return texID;
+}
+
+void LoadImageToTexture(ImageRGBA& image, GLuint existingTexture)
+{
+  glBindTexture(GL_TEXTURE_2D, existingTexture);
+  glTexImage2D(GL_TEXTURE_2D, 0 , GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
 }
 
 GfxProgram LoadGraphicsProgram(std::string vertShaderPath, std::string fragShaderPath)

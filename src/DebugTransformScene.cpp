@@ -8,7 +8,15 @@ DebugTransformScene::DebugTransformScene(MapState& map) : Scene(map, SceneType::
     _label5(map),
     _label6(map),
     _label7(map),
-    _label8(map)
+    _label8(map),
+    projection(map),
+    fullscreen_rect_vertex_buffer_data
+    { 
+      0.0f, (float)map.height, 0.0f,
+      0.0f,  0.0f, 0.0f,
+      (float)map.width, (float)map.height, 0.0f,
+      (float)map.width,  0.0f, 0.0f
+    }
 {
     _label1.SetText("DEBUG");
     _label1.SetPosition(0,0);
@@ -53,11 +61,31 @@ const char* DebugTransformScene::SceneResourceDir()
 
 void DebugTransformScene::initGLOverride()
 {
-  TextLabel::InitGL(Map);
+  // Create the LonLatLookupTexture
+  ImageRGBA lut = projection.getInvLookupTable();
+  LonLatLookupTexture = LoadImageToTexture(lut);
 
   // Load and compile the shaders into a glsl program
   program = loadGraphicsProgram(vertShader, fragShader);
-  program.SetCameraFromPixelTransform(Map.width,Map.height);
+  program.SetCameraFromPixelTransform(map.width,map.height);
+}
+
+void DebugTransformScene::drawMapRect()
+{
+  glVertexAttribPointer(
+                        0, //vertexPosition_modelspaceID, // The attribute we want to configure
+                        3,                  // size
+                        GL_FLOAT,           // type
+                        GL_FALSE,           // normalized?
+                        0,                  // stride
+                        fullscreen_rect_vertex_buffer_data // (void*)0            // array buffer offset
+                );
+
+   // see above glEnableVertexAttribArray(vertexPosition_modelspaceID);
+   glEnableVertexAttribArray ( 0 );
+
+  // Draw the triangles!
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 void DebugTransformScene::drawOverride()
@@ -73,7 +101,7 @@ void DebugTransformScene::drawOverride()
   program.SetUniform("uLonLatLut", 0);
   
   // Tell the frag shader the size of the map in pixels
-  program.SetUniform("uScale", Map.width, Map.height);
+  program.SetUniform("uScale", map.width, map.height);
   
   // Draw a full map-sized rectagle using the current shader
 	drawMapRect();

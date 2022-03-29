@@ -116,6 +116,8 @@ DisplayDevice::Clear()
 #include <thread>
 #include <filesystem>
 
+#define check() assert(glGetError() == 0)
+
 static const EGLint attribute_list[] =
 {
     EGL_RED_SIZE, 8,
@@ -142,28 +144,18 @@ struct DisplayDevice::Impl
     EGLDisplay display;
     EGLConfig config;
     EGLContext context;
-    std::vector<uint8_t> CPUTextureCache;
+    ImageRGBA CPUTextureCache;
     GfxProgram program;
     GLuint texture;
     GLint vertexAttrib;
     GLint coordinateAttrib;
     std::vector<float> mesh;
 
-    std::string GetResourcePath(std::string resourceName)
-    {
-        auto filePath = std::filesystem::path(map.sceneResourcePath) / "Shared" / resourceName;
-        if (std::filesystem::exists(filePath))
-        {
-            return filePath;
-        }
-        return std::string();
-    }
-
-    Impl(MapState& map) : map(map), CPUTextureCache(map.width * map.height * 4 * sizeof(uint8_t))
+    Impl(MapState& map) : map(map), CPUTextureCache(map.width, map.height)
     {
         // Create the OS window
         window = OSWindow::New();
-        if (!window->initialize(map.defaultScene, map.width * 4, map.height * 4))
+        if (!window->initialize(map.defaultScene, map.width * 5, map.height * 5))
         {
             throw std::runtime_error("Couldn't open OS window!");
         }
@@ -198,19 +190,15 @@ struct DisplayDevice::Impl
         eglMakeCurrent(display, surface, surface, context);
 
         // Load and compile the image display shaders into a glsl program
-        program = LoadGraphicsProgram(GetResourcePath("imagevertshader.glsl"), 
-                                      GetResourcePath("imagefragshader.glsl"));
+        program = LoadGraphicsProgram(map.GetResourcePath("ledmatrixvertshader.glsl"), 
+                                      map.GetResourcePath("ledmatrixfragshader.glsl"));
         program.SetCameraFromPixelTransform(map.width,map.height);
         vertexAttrib = glGetAttribLocation(program.GetId(), "aVertex");
         coordinateAttrib = glGetAttribLocation(program.GetId(), "aTexCoord");
 
         // Create a texture for the display image
-        texture = 0;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0 , GL_RGBA, map.width, map.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, CPUTextureCache.data());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        texture = LoadImageToTexture(CPUTextureCache);
 
         // Create the mesh for the image render
         //       X                  Y                   Z       U       V
@@ -218,6 +206,8 @@ struct DisplayDevice::Impl
                 (float)map.width,   0.0f,               0.0f,   1.0f,   1.0f, 
                 0.0f,               (float)map.height,  0.0f,   0.0f,   0.0f,
                 (float)map.width,   (float)map.height,  0.0f,   1.0f,   0.0f  };
+        
+        check();
     }
 
     void update()
@@ -229,8 +219,7 @@ struct DisplayDevice::Impl
         eglMakeCurrent(display, surface, surface, context);
 
         // Push the new render into the texture
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(GL_TEXTURE_2D, 0 , GL_RGBA, map.width, map.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, CPUTextureCache.data());
+        LoadImageToTexture(CPUTextureCache, texture);
 
         // Set the viewport
         float winRatio = (float)window->getWidth() /  (float)window->getHeight();

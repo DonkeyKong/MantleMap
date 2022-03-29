@@ -2,6 +2,7 @@
 #define TEXTLABEL_HPP
 
 #include "LoadShaders.hpp"
+#include "SceneElement.hpp"
 #include "MapState.hpp"
 
 #include <vector>
@@ -28,23 +29,24 @@ enum class TextAlignment
   Center
 };
 
-class TextLabel
+class TextLabel : public SceneElement
 {
  public:
     TextLabel(MapState&);
-    ~TextLabel();
+    virtual ~TextLabel();
     
-    static void InitGL(MapState& map);
     void SetText(std::string);
     void SetFontStyle(FontStyle style, float scale = 1.0f);
     void SetColor(float r, float g, float b, float a);
     void SetPosition(float x, float y);
     void SetFlowDirection(TextFlowDirection direction);
     void SetAlignment(TextAlignment alignment);
-    void Draw();
     float GetLength();
 
 protected:
+    virtual void initGL() override;
+    virtual void drawInternal() override;
+
     void updateBuffers();
     void invalidateBuffers();
     float getFontTileWidth();
@@ -53,7 +55,6 @@ protected:
     
 private:
     std::mutex _mutex;
-    MapState& _map;
     static GfxProgram _program;
     static GLuint _fontTextureLarge;
     static GLuint _fontTextureSmall;

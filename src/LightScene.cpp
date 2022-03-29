@@ -1,4 +1,5 @@
 #include "LightScene.hpp"
+#include "AnimationUtil.hpp"
 
 #include <regex>
 #include <algorithm>
@@ -7,7 +8,16 @@
 #include <chrono>
 #include <ctime>
 
-LightScene::LightScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetime::Manual)
+LightScene::LightScene(MapState& map) : 
+  Scene(map, SceneType::Base, SceneLifetime::Manual),
+  projection(map),
+  fullscreen_rect_vertex_buffer_data
+  { 
+    0.0f, (float)map.height, 0.0f,
+    0.0f,  0.0f, 0.0f,
+    (float)map.width, (float)map.height, 0.0f,
+    (float)map.width,  0.0f, 0.0f
+  }
 {
   sunCurrentLat = 0;
   sunCurrentLon = 0;
@@ -15,7 +25,7 @@ LightScene::LightScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetim
   sunTargetLon = 0;
   sunPropAngleCurrent = 0;
   overrideSunLocation = false;
-  sunPropAngleTarget = Map.sunPropigationDeg;
+  sunPropAngleTarget = map.sunPropigationDeg;
 }
 
 LightScene::~LightScene()
@@ -24,7 +34,7 @@ LightScene::~LightScene()
 
 const char* LightScene::SceneName()
 {
-  return "Sunlight Map";
+  return "Sunlight map";
 }
 
 const char* LightScene::SceneResourceDir()
@@ -34,6 +44,10 @@ const char* LightScene::SceneResourceDir()
 
 void LightScene::initGLOverride()
 {
+  // Create the LonLatLookupTexture
+  ImageRGBA lut = projection.getInvLookupTable();
+  LonLatLookupTexture = LoadImageToTexture(lut);
+
   // Create and setup mapLayer1Texture
   mapLayer1Texture = loadImageToTexture(mapImagePath.c_str());
   
@@ -42,7 +56,25 @@ void LightScene::initGLOverride()
   
   // Load and compile the shaders into a glsl program
   program = loadGraphicsProgram(vertShader, fragShader);
-  program.SetCameraFromPixelTransform(Map.width,Map.height);
+  program.SetCameraFromPixelTransform(map.width,map.height);
+}
+
+void LightScene::drawMapRect()
+{
+  glVertexAttribPointer(
+                        0, //vertexPosition_modelspaceID, // The attribute we want to configure
+                        3,                  // size
+                        GL_FLOAT,           // type
+                        GL_FALSE,           // normalized?
+                        0,                  // stride
+                        fullscreen_rect_vertex_buffer_data // (void*)0            // array buffer offset
+                );
+
+   // see above glEnableVertexAttribArray(vertexPosition_modelspaceID);
+   glEnableVertexAttribArray ( 0 );
+
+  // Draw the triangles!
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 bool LightScene::Query(std::string query, std::string& response)
@@ -165,7 +197,7 @@ bool LightScene::Query(std::string query, std::string& response)
         }
       }
       
-      Map.GoToTimeRelative(delta * dir);
+      map.GoToTimeRelative(delta * dir);
 
       std::stringstream output;
       output << "Time adjustment adjusted by " << delta * dir << " days" << std::endl;
@@ -185,7 +217,7 @@ bool LightScene::Query(std::string query, std::string& response)
      
       timeMultiplier = std::stod(match[1]);
       
-      Map.SetTimeMultiplier(timeMultiplier);
+      map.SetTimeMultiplier(timeMultiplier);
       
       std::stringstream output;
       output << "Speed multiplier set to " << timeMultiplier << " days" << std::endl;
@@ -217,7 +249,7 @@ bool LightScene::Query(std::string query, std::string& response)
       }
       else if (match[1].str()[0] == 'l')
       {
-        sunPropAngleTarget = Map.sunPropigationDeg;
+        sunPropAngleTarget = map.sunPropigationDeg;
         std::stringstream output;
         output << "Showing light map" << std::endl;
         response = output.str();
@@ -253,7 +285,7 @@ bool LightScene::Query(std::string query, std::string& response)
 void LightScene::resetOverride(bool animate)
 {
   overrideSunLocation = false;
-  sunPropAngleTarget = Map.sunPropigationDeg;
+  sunPropAngleTarget = map.sunPropigationDeg;
   Update();
   
   // If we want to skip animations, force things instantly into the right place
@@ -270,10 +302,10 @@ void LightScene::updateOverride()
   // Update the sun's location
   if (!overrideSunLocation)
   {
-    Map.AstronomyService.GetSolarPoint(Map.GetMapTimeAsJulianDate(), sunTargetLat, sunTargetLon);
+    map.AstronomyService.GetSolarPoint(map.GetMapTimeAsJulianDate(), sunTargetLat, sunTargetLon);
   }
   
-  moveTowardsAngleDeg2D(sunCurrentLat, sunCurrentLon, sunTargetLat, sunTargetLon, 0.5 * Map.GetTimeMultiplier());
+  moveTowardsAngleDeg2D(sunCurrentLat, sunCurrentLon, sunTargetLat, sunTargetLon, 0.5 * map.GetTimeMultiplier());
   
   moveTowards(sunPropAngleCurrent, sunPropAngleTarget, 0.5f);
 }
@@ -298,12 +330,12 @@ void LightScene::drawOverride()
   program.SetUniform("uSunPropigationRad", sunPropAngleCurrent * (float)(M_PI / 180.0));
   
   // Tell the frag shader the size of the map in pixels
-  program.SetUniform("uScale", Map.width, Map.height);
+  program.SetUniform("uScale", map.width, map.height);
   
   {
     double lat, lon;
-    Map.AstronomyService.GetSolarPoint(Map.GetTimeAsJulianDate(), lat, lon);
-    program.SetUniform("uLightBoost", Map.GetLightBoost(lat, lon));
+    map.AstronomyService.GetSolarPoint(map.GetTimeAsJulianDate(), lat, lon);
+    program.SetUniform("uLightBoost", map.GetLightBoost(lat, lon));
   }
   
   
@@ -315,7 +347,7 @@ void LightScene::drawOverride()
   
   // Do the same for the moon
   double lat, lon;
-  Map.AstronomyService.GetLunarPoint(Map.GetMapTimeAsJulianDate(), lat, lon);
+  map.AstronomyService.GetLunarPoint(map.GetMapTimeAsJulianDate(), lat, lon);
   program.SetUniform("uMoonLonLat", (float)(lon * (M_PI / 180.0)), (float)(lat * (M_PI / 180.0)));
   
   // Draw a full map-sized rectagle using the current shader

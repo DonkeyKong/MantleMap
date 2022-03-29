@@ -34,4 +34,10 @@ private:
     double sunCurrentLat;
     double sunCurrentLon;
     bool overrideSunLocation;
+
+    // Helper function that draws a fullscreen rect, generally used to draw the map
+    void drawMapRect();
+    NaturalEarth projection;
+    GLuint LonLatLookupTexture;
+    GLfloat fullscreen_rect_vertex_buffer_data[12];
 };

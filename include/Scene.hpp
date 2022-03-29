@@ -2,6 +2,7 @@
 
 #include "LoadShaders.hpp"
 #include "NaturalEarth.hpp"
+#include "SceneElement.hpp"
 #include "MapState.hpp"
 
 #include "EGL/egl.h"
@@ -11,7 +12,6 @@
 
 #include <chrono>
 #include <string>
-#include <math.h>
 
 enum class SceneLifetime
 {
@@ -43,9 +43,6 @@ class Scene
     // Get 
     virtual std::string GetResourcePath(std::string resourceName) final;
     
-    // Initialize all OpenGL data like textures and shaders
-    virtual void InitGL() final;
-    
     // Reset the scene to its default state
     // For example, you might ask the light map to show to a date time
     // and after some time, it should return to its default state showing 
@@ -75,7 +72,6 @@ class Scene
     virtual SceneType GetSceneType() final;
     
   protected:
-  
     // Overrides for subclasses to customize behavior
     virtual void initGLOverride();
     virtual void drawOverride();
@@ -84,104 +80,26 @@ class Scene
     virtual void hideOverride();
     virtual void baseSceneChangedOverride(std::string);
     virtual void resetOverride(bool animate);
-  
-    // Helper function that draws a fullscreen rect, generally used to draw the map
-    void drawMapRect();
-    
-    // Load an image using image magick and insert it straight into a texture
+
+    // Load an image using libpng and insert it straight into a texture
     GLuint loadImageToTexture(std::string resourceName);
     
     // Load a vert and frag shader and create a program with them
     GfxProgram loadGraphicsProgram(std::string vertShaderName, std::string fragShaderName);
 
-    NaturalEarth projection;
-    
-    GLuint LonLatLookupTexture;
-    MapState& Map;
+    std::vector<SceneElement*> Elements;
+    MapState& map;
     std::string BaseSceneName;
     
-    // Animation Help Functions
-    template<typename T>
-    static void moveTowards2D(T& x, T& y, const T& targetX, const T& targetY, T velocity)
-    {
-      // Get distance
-      T dist = sqrt(pow(x-targetX,2.0) + pow(y-targetY,2.0));
-  
-      if (dist < velocity)
-      { 
-        x = targetX;
-        y = targetY;
-      }
-      else
-      {
-        x += (targetX - x) / dist * velocity;
-        y += (targetY - y) / dist * velocity;
-      }
-    }
-    
-    
-    
-    // Animation Help Functions
-    
-    template<typename T>
-    static void normAngleDeg(T& a)
-    {
-      while (a > 180.0)
-        a -= 360.0;
-      while (a < -180.0)
-        a += 360.0;
-    }
-    
-    template<typename T>
-    static T angleDiff( T angle1, T angle2 )
-    {
-      T diff = fmod(( angle2 - angle1 + 180.0 ) , 360.0) - 180.0;
-      return diff < -180.0 ? diff + 360.0 : diff;
-    }
-    
-    template<typename T>
-    static void moveTowardsAngleDeg2D(T& x, T& y, const T& targetX, const T& targetY, T velocity)
-    {
-      // Get distance
-      T dist = sqrt(pow(angleDiff(x, targetX),2.0) + pow(angleDiff(y, targetY),2.0));
-  
-      if (dist < velocity)
-      { 
-        x = targetX;
-        y = targetY;
-      }
-      else
-      {
-        x += angleDiff(x, targetX) / dist * velocity;
-        y += angleDiff(y, targetY) / dist * velocity;
-      }
-      
-      normAngleDeg(x); normAngleDeg(y);
-    }
-    
-    template<typename T>
-    static void moveTowards(T& v, const T& targetV, T velocity)
-    {
-      // Get distance
-      T dist = abs(v-targetV);
-  
-      if (dist < velocity)
-      { 
-        v = targetV;
-      }
-      else
-      {
-        v += (targetV - v) / dist * velocity;
-      }
-    }
-    
   private:
+    // Initialize all OpenGL data like textures and shaders
+    virtual void initGL() final;
+    bool _initGLDone;
+
     SceneLifetime _sceneLifetime;
     SceneType _sceneType;
     timepoint_seconds_t _showTime;
     fractionalSeconds _sceneLifetimeSeconds;
     bool _isVisible;
-    GLfloat fullscreen_rect_vertex_buffer_data[12];
-    
 };
 

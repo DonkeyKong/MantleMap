@@ -100,7 +100,8 @@ void GLRenderContext::initGL()
   FramebufferName = 0;
   glGenFramebuffers(1, &FramebufferName);
   glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
-  
+  check();
+
   // Create the render texture
   glGenTextures(1, &RenderedTexture);
 
@@ -113,6 +114,7 @@ void GLRenderContext::initGL()
   // Poor filtering. Needed !
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  check();
 }
 
 void GLRenderContext::BeginDraw()

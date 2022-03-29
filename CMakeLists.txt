@@ -39,10 +39,12 @@ set(PNG_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/deps/libpng
 add_executable( ${PROJECT_NAME} 
                     src/Astronomy.cpp
                     src/CmdDebugScene.cpp
+                    src/ConfigCodeScene.cpp
                     src/DebugTransformScene.cpp
                     src/DisplayDevice.cpp
                     src/GLRenderContext.cpp
                     src/ImageRGBA.cpp
+                    src/ImageView.cpp
                     src/LightScene.cpp
                     src/LoadShaders.cpp
                     src/mantlemap.cpp
@@ -51,10 +53,12 @@ add_executable( ${PROJECT_NAME}
                     src/NaturalEarth.cpp
                     src/PolyLine.cpp
                     src/Scene.cpp
+                    src/SceneElement.cpp
                     src/SolarScene.cpp
                     src/TextLabel.cpp
                     src/UsbButton.cpp
-                    src/WeatherScene.cpp )
+                    src/WeatherScene.cpp
+                    deps/QR-Code-Generator/cpp/qrcodegen.cpp )
 
 # Set some compiler flags used for features
 if (PI_HOST)
@@ -66,7 +70,7 @@ else()
     target_compile_definitions(${PROJECT_NAME} PUBLIC "USING_ANGLE")
 endif()
 
-target_include_directories(${PROJECT_NAME} PRIVATE include ${PNG_INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE include ${PNG_INCLUDE_DIR} deps/QR-Code-Generator/cpp)
 target_link_libraries(${PROJECT_NAME} fmt nlohmann_json httplib png_static astro angle OpenSSL::SSL OpenSSL::Crypto)
 
 add_custom_target(copy_scenes ALL)

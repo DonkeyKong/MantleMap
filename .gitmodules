@@ -16,3 +16,6 @@
 [submodule "astro"]
 	path = deps/astro
 	url = https://github.com/DonkeyKong/astro.git
+[submodule "deps/QR-Code-generator"]
+	path = deps/QR-Code-generator
+	url = https://github.com/nayuki/QR-Code-generator.git

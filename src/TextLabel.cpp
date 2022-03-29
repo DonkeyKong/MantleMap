@@ -1,5 +1,7 @@
 #include "TextLabel.hpp"
 
+#define check() assert(glGetError() == 0)
+
 GfxProgram TextLabel::_program;
 std::string TextLabel::_vertShaderName = "fontvertshader.glsl"; 
 std::string TextLabel::_fragShaderName = "fontfragshader.glsl";
@@ -9,7 +11,7 @@ GLuint TextLabel::_fontTextureBigTall = 0;
 GLint TextLabel::_vertexAttrib;
 GLint TextLabel::_coordinateAttrib;
 
-TextLabel::TextLabel(MapState& map) : _map(map)
+TextLabel::TextLabel(MapState& map) : SceneElement(map)
 {
   _r = 1.0;
   _g = 1.0;
@@ -24,8 +26,9 @@ TextLabel::TextLabel(MapState& map) : _map(map)
   _textDirty = true;
 }
 
-void TextLabel::InitGL(MapState& map)
+void TextLabel::initGL()
 {  
+  check();
   if (!_program.isLoaded)
   {
     // Load and compile the shaders into a glsl program
@@ -38,6 +41,7 @@ void TextLabel::InitGL(MapState& map)
     
     _vertexAttrib = glGetAttribLocation(_program.GetId(), "aVertex");
     _coordinateAttrib = glGetAttribLocation(_program.GetId(), "aTexCoord");
+    check();
   }
 }
 
@@ -201,17 +205,22 @@ float TextLabel::GetLength()
     return _text.size() * getFontTileHeight() * _scale;
 }
 
-void TextLabel::Draw()
+void TextLabel::drawInternal()
 {
+  check();
   std::lock_guard<std::mutex> lock(_mutex);
 
   updateBuffers();
+
+  // Don't draw anything if there is no text
+  if (_text.size() == 0)
+    return;
   
 	// Select our shader program
 	glUseProgram(_program.GetId());
 	
 	// Setup the map transform
-	_program.SetCameraFromPixelTransform(_map.width,_map.height);
+	_program.SetCameraFromPixelTransform(map.width, map.height);
 	
 	// Bind the day, night, and lon lat lookup textures to units 0, 1, and 2
   glActiveTexture(GL_TEXTURE0);
@@ -276,4 +285,6 @@ void TextLabel::Draw()
 
   // Draw the triangles!
   glDrawArrays(GL_TRIANGLES, 0, _text.size() * 2 * 3);
+
+  check();
 }

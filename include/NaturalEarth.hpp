@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include "ImageRGBA.hpp"
 
 struct Point2D
 {
@@ -25,6 +25,6 @@ public:
     
     bool mapInverse(int x, int y, Point2D& out);
     
-    std::vector<unsigned char> getInvLookupTable();
+    ImageRGBA getInvLookupTable();
     
 };

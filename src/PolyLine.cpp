@@ -10,7 +10,7 @@ std::string PolyLine::_fragShaderName = "flatfragshader.glsl";
 GLint PolyLine::_vertexAttrib;
 GLint PolyLine::_colorAttrib;
 
-PolyLine::PolyLine(MapState& map) : _map(map)
+PolyLine::PolyLine(MapState& map) : SceneElement(map)
 {    
     _dirty = true;
     _halfWidth = 0.5f;
@@ -19,7 +19,7 @@ PolyLine::PolyLine(MapState& map) : _map(map)
     _color = {1.0f,1.0f,1.0f,1.0f};
 }
 
-void PolyLine::InitGL(MapState& map)
+void PolyLine::initGL()
 {  
   if (!_program.isLoaded)
   {
@@ -131,7 +131,7 @@ void PolyLine::updateBuffers()
   }
 }
 
-void PolyLine::Draw()
+void PolyLine::drawInternal()
 {
   std::lock_guard<std::mutex> lock(_mutex);
 
@@ -143,7 +143,7 @@ void PolyLine::Draw()
     glUseProgram(_program.GetId());
   
     // Setup the map transform
-    _program.SetCameraFromPixelTransform(_map.width,_map.height);
+    _program.SetCameraFromPixelTransform(map.width, map.height);
     _program.SetUniform("uLocation", _locX, _locY);
     _program.SetUniform("uColor", _color.r, _color.g, _color.b, _color.a);
     

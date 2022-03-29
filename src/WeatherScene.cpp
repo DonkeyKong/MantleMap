@@ -48,6 +48,9 @@ static int getStationCurrentTemp(httplib::Client& client, const std::string& sta
 WeatherScene::WeatherScene(MapState& map) : Scene(map, SceneType::Overlay, SceneLifetime::Manual),
   _tempLabel(map)
 {
+  // Add child elements...
+  Elements.push_back(&_tempLabel);
+
   _noaaTemp = "Initializing";
   _exitTempUpdateThread = false;
   
@@ -69,7 +72,7 @@ WeatherScene::WeatherScene(MapState& map) : Scene(map, SceneType::Overlay, Scene
       // Request the point info for home zone of home
       auto pointsJson = json::parse(
                           noaa.Get(
-                            fmt::format("/points/{0:.4f},{1:.4f}", Map.homeLatitudeDeg, Map.homeLongitudeDeg).c_str()
+                            fmt::format("/points/{0:.4f},{1:.4f}", map.homeLatitudeDeg, map.homeLongitudeDeg).c_str()
                           )->body);
       std::string stationsURL = pointsJson["properties"]["observationStations"];
       _noaaTemp = "Pts";
@@ -84,7 +87,7 @@ WeatherScene::WeatherScene(MapState& map) : Scene(map, SceneType::Overlay, Scene
       {
         double statLat = station["geometry"]["coordinates"][1];
         double statLon = station["geometry"]["coordinates"][0];
-        double dist = gpsDistKm(Map.homeLatitudeDeg, Map.homeLongitudeDeg,
+        double dist = gpsDistKm(map.homeLatitudeDeg, map.homeLongitudeDeg,
                               statLat, statLon);
         std::string id = station["properties"]["stationIdentifier"];
         
@@ -151,11 +154,6 @@ const char* WeatherScene::SceneResourceDir()
   return "Weather";
 }
 
-void WeatherScene::initGLOverride()
-{
-  TextLabel::InitGL(Map);
-}
-
 void WeatherScene::updateOverride()
 {
   _tempLabel.SetText(_noaaTemp);
@@ -164,7 +162,3 @@ void WeatherScene::updateOverride()
   _tempLabel.SetPosition(4, 4);
 }
 
-void WeatherScene::drawOverride()
-{
-  _tempLabel.Draw();
-}

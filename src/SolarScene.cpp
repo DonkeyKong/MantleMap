@@ -7,11 +7,11 @@ SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetim
   _solarLine(map), _horizonLine(map), _sunCircle(map), _lunarLine(map), _moonCircle(map),
   _sunriseLabel(map), _sunsetLabel(map)
 {   
-  _showMoon = Map.GetConfigValue("solarShowMoon", true);
+  _showMoon = map.GetConfigValue("solarShowMoon", true);
   
-  _vScale = (double)Map.height / 180.0 * 0.9;
-  _vOffset = (double)Map.height * 0.05;
-  _hScale = (double)Map.width;
+  _vScale = (double)map.height / 180.0 * 0.9;
+  _vOffset = (double)map.height * 0.05;
+  _hScale = (double)map.width;
   
   _moonColorDay  = {0.3f,0.3f,0.3f,1.0f};
   _moonColorNight  = {0.6f,0.6f,0.6f,1.0f};
@@ -61,12 +61,6 @@ const char* SolarScene::SceneResourceDir()
   return "Solar";
 }
 
-void SolarScene::initGLOverride()
-{
-  PolyLine::InitGL(Map);
-  TextLabel::InitGL(Map);
-}
-
 static float invInterp(float start, float end, float val)
 {
   if (end == start)
@@ -97,27 +91,27 @@ static Color interpolate(Color start, Color end, float t)
 void SolarScene::updateOverride()
 {
   // Generate today's solar curve if it's stale
-  double nowJulian = Map.GetMapTimeAsJulianDate();
+  double nowJulian = map.GetMapTimeAsJulianDate();
   
   if (nowJulian > _endJulian || nowJulian < _startJulian)
   {
     // Get the required julian dates
-    auto start = Map.GetLocaltimeFromJulianDate(nowJulian);
+    auto start = map.GetLocaltimeFromJulianDate(nowJulian);
     start.tm_sec = 0;
     start.tm_min = 0;
     start.tm_hour = 0;
-    _startJulian = Map.GetJulianDateFromLocaltime(start);
+    _startJulian = map.GetJulianDateFromLocaltime(start);
     _endJulian = _startJulian+1.0;
 
     // Create the sun polyline
     std::vector<PolyLinePoint> points;
     double sunriseJulianGuess = 0;
     double sunsetJulianGuess = 0;
-    for (double t = _startJulian; t <= (_endJulian+0.05); t += (4.0/(double)Map.width))
+    for (double t = _startJulian; t <= (_endJulian+0.05); t += (4.0/(double)map.width))
     {
       double latitudeDeg, longitudeDeg;
-      Map.AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
-      double degAway = Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
+      map.AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
+      double degAway = map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
       points.push_back(
       {
         (float)((t - _startJulian) * _hScale),
@@ -141,8 +135,8 @@ void SolarScene::updateOverride()
       for (double t = sunriseJulianGuess; t > _startJulian; t -= (1.0 / 1440.0))
       {
         double latitudeDeg, longitudeDeg;
-        Map.AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
-        double degAway = Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
+        map.AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
+        double degAway = map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
         if (degAway >= 90.0)
         {
           _sunriseJulian = t;
@@ -154,8 +148,8 @@ void SolarScene::updateOverride()
       for (double t = sunsetJulianGuess; t > _startJulian; t -= (1.0 / 1440.0))
       {
         double latitudeDeg, longitudeDeg;
-        Map.AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
-        double degAway = Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
+        map.AstronomyService.GetSolarPoint(t, latitudeDeg, longitudeDeg);
+        double degAway = map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
         if (degAway <= 90.0)
         {
           _sunsetJulian = t;
@@ -168,11 +162,11 @@ void SolarScene::updateOverride()
   if (nowJulian > _endJulianMoon || nowJulian < _startJulianMoon)
   {
     // Get the required julian dates
-    auto start = Map.GetLocaltimeFromJulianDate(nowJulian);
+    auto start = map.GetLocaltimeFromJulianDate(nowJulian);
     start.tm_sec = 0;
     start.tm_min = 0;
     start.tm_hour = 12;
-    _startJulianMoon = Map.GetJulianDateFromLocaltime(start);
+    _startJulianMoon = map.GetJulianDateFromLocaltime(start);
     
     if (nowJulian < _startJulianMoon)
       _startJulianMoon -= 1.0;
@@ -181,14 +175,14 @@ void SolarScene::updateOverride()
     
     // Create the moon polyline
     std::vector<PolyLinePoint> points; 
-    for (double t = _startJulianMoon; t <= (_endJulianMoon+0.05); t += (4.0/(double)Map.width))
+    for (double t = _startJulianMoon; t <= (_endJulianMoon+0.05); t += (4.0/(double)map.width))
     {
       double latitudeDeg, longitudeDeg;
-      Map.AstronomyService.GetLunarPoint(t, latitudeDeg, longitudeDeg);
+      map.AstronomyService.GetLunarPoint(t, latitudeDeg, longitudeDeg);
       points.push_back(
       {
         (float)((t - _startJulianMoon) * _hScale),
-        (float)(_vOffset + Map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg) * _vScale),
+        (float)(_vOffset + map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg) * _vScale),
         0,
         0.25f, 0.25f, 0.5f, 1.0f
       });
@@ -198,15 +192,15 @@ void SolarScene::updateOverride()
   
   // Position the sun and moon
   double sunLatDeg, sunlonDeg, moonLatDeg, moonlonDeg;
-  Map.AstronomyService.GetSolarPoint(Map.GetMapTimeAsJulianDate(), sunLatDeg, sunlonDeg);
-  Map.AstronomyService.GetLunarPoint(Map.GetMapTimeAsJulianDate(), moonLatDeg, moonlonDeg);
-  _sunCircle.SetLocation( (float) ( Map.GetMapTimeAsJulianDate() -  _startJulian) * _hScale,
-                           (float) _vOffset + Map.GetAngleDistInDegFromHomeTangent(sunLatDeg, sunlonDeg) * _vScale);    
-  _moonCircle.SetLocation( (float) ( Map.GetMapTimeAsJulianDate() -  _startJulianMoon) * _hScale,
-                           (float) _vOffset + Map.GetAngleDistInDegFromHomeTangent(moonLatDeg, moonlonDeg) * _vScale);
+  map.AstronomyService.GetSolarPoint(map.GetMapTimeAsJulianDate(), sunLatDeg, sunlonDeg);
+  map.AstronomyService.GetLunarPoint(map.GetMapTimeAsJulianDate(), moonLatDeg, moonlonDeg);
+  _sunCircle.SetLocation( (float) ( map.GetMapTimeAsJulianDate() -  _startJulian) * _hScale,
+                           (float) _vOffset + map.GetAngleDistInDegFromHomeTangent(sunLatDeg, sunlonDeg) * _vScale);    
+  _moonCircle.SetLocation( (float) ( map.GetMapTimeAsJulianDate() -  _startJulianMoon) * _hScale,
+                           (float) _vOffset + map.GetAngleDistInDegFromHomeTangent(moonLatDeg, moonlonDeg) * _vScale);
                            
   // Style the sun and moon
-  double sunAngle = Map.GetAngleDistInDegFromHomeTangent(sunLatDeg, sunlonDeg);
+  double sunAngle = map.GetAngleDistInDegFromHomeTangent(sunLatDeg, sunlonDeg);
   _moonCircle.SetThickness(interpolate(1.5f, 2.5f, invInterp(85, 95, sunAngle)));
   _moonCircle.SetColor(interpolate(_moonColorDay, _moonColorNight, invInterp(85, 95, sunAngle)));
   _sunCircle.SetThickness(interpolate(3.0f, 1.0f, invInterp(85, 95, sunAngle)));
@@ -217,7 +211,7 @@ void SolarScene::updateOverride()
   
   if (_sunriseJulian != 0) 
   {
-    auto sunriseLabelTime = Map.GetLocaltimeFromJulianDate(_sunriseJulian);
+    auto sunriseLabelTime = map.GetLocaltimeFromJulianDate(_sunriseJulian);
     std::strftime(formatStr, 255, "%H:%M", &sunriseLabelTime );
     _sunriseLabel.SetText(formatStr);
     _sunriseLabel.SetFontStyle(FontStyle::Narrow);
@@ -228,7 +222,7 @@ void SolarScene::updateOverride()
   
   if (_sunsetJulian != 0) 
   {
-    auto sunsetLabelTime = Map.GetLocaltimeFromJulianDate(_sunsetJulian);
+    auto sunsetLabelTime = map.GetLocaltimeFromJulianDate(_sunsetJulian);
     std::strftime(formatStr, 255, "%H:%M", &sunsetLabelTime );
     _sunsetLabel.SetText(formatStr);
     _sunsetLabel.SetFontStyle(FontStyle::Narrow);
@@ -256,15 +250,15 @@ void SolarScene::drawOverride()
   if (_showMoon) 
   {
     _moonCircle.Draw();
-    _moonCircle.Move(-Map.width, 0);
+    _moonCircle.Move(-map.width, 0);
     _moonCircle.Draw();
-    _moonCircle.Move(2.0f * Map.width, 0);
+    _moonCircle.Move(2.0f * map.width, 0);
     _moonCircle.Draw();
   }
   
   _sunCircle.Draw();
-  _sunCircle.Move(-Map.width, 0);
+  _sunCircle.Move(-map.width, 0);
   _sunCircle.Draw();
-  _sunCircle.Move(2.0f * Map.width, 0);
+  _sunCircle.Move(2.0f * map.width, 0);
   _sunCircle.Draw();
 }

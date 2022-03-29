@@ -11,21 +11,19 @@ MapTimeScene::MapTimeScene(MapState& map) : Scene(map, SceneType::Overlay, Scene
     _yearLabel(map),
     _timeLabel(map)
 {
-  
+  Elements.push_back(&_timeLabel);
+	Elements.push_back(&_monthLabel);
+	Elements.push_back(&_dayLabel);
+	Elements.push_back(&_yearLabel);
 }
 
 MapTimeScene::~MapTimeScene()
 {
 }
 
-void MapTimeScene::initGLOverride()
-{
-  TextLabel::InitGL(Map);
-}
-
 const char* MapTimeScene::SceneName()
 {
-  return "Map Time Overlay";
+  return "map Time Overlay";
 }
 
 const char* MapTimeScene::SceneResourceDir()
@@ -35,7 +33,7 @@ const char* MapTimeScene::SceneResourceDir()
 
 void MapTimeScene::updateOverride()
 {
-  auto nowLocal = Map.GetMapTimeAsLocaltime();
+  auto nowLocal = map.GetMapTimeAsLocaltime();
   char formatStr[256];
   
   if (BaseSceneName == "Solar")
@@ -95,12 +93,4 @@ void MapTimeScene::updateOverride()
     _yearLabel.SetPosition(192, 12);
     _yearLabel.SetAlignment(TextAlignment::AlignToEnd);
   }
-}
-
-void MapTimeScene::drawOverride()
-{
-  _timeLabel.Draw();
-	_monthLabel.Draw();
-	_dayLabel.Draw();
-	_yearLabel.Draw();
 }
