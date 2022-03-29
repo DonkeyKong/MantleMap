@@ -35,6 +35,8 @@ endif()
 if (APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
 set(PNG_ARM_NEON on)
 endif()
+set(PNG_SHARED OFF)
+set(PNG_TESTS OFF)
 add_subdirectory("deps/libpng")
 set(PNG_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/deps/libpng
                     ${CMAKE_CURRENT_BINARY_DIR}/deps/libpng)
