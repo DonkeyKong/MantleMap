@@ -53,7 +53,7 @@ bool GfxShader::LoadFragmentShader(const char* filename)
   //now create and compile the shader
   GLchar* sourcePtr = Src.data();
   Id = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(Id, 1, &sourcePtr, 0);
+  glShaderSource(Id, 1, (const GLchar**)&sourcePtr, 0);
   glCompileShader(Id);
   return checkShader();
 }
@@ -76,7 +76,7 @@ bool GfxShader::LoadVertexShader(const char* filename)
   GLchar* sourcePtr = Src.data();
   GlShaderType = GL_VERTEX_SHADER;
   Id = glCreateShader(GlShaderType);
-  glShaderSource(Id, 1, &sourcePtr, 0);
+  glShaderSource(Id, 1, (const GLchar**)&sourcePtr, 0);
   glCompileShader(Id);
 
   return checkShader();

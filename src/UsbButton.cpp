@@ -2,8 +2,10 @@
 
 #ifdef LINUX_HID_CONTROLLER_SUPPORT
 
-#include <linux/joystick.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <linux/joystick.h>
 
 /**
  * Reads a joystick event from the joystick device.
@@ -126,6 +128,7 @@ bool UsbButton::pressed()
     {
       return (pImpl_->event.type == JS_EVENT_BUTTON && !pImpl_->event.value);
     }
+    return false;
 }
 #else
 

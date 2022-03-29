@@ -75,14 +75,24 @@ void ImageView::drawInternal()
       texture = 0;
     }
 
+
+    #ifdef NPOT_TEXTURE_SUPPORT
+    float maxU = 1.0f;
+    float maxV = 1.0f;
+    #else
+    image.PadToPowerOfTwo();
+    float maxU = 1.0f - ((float)image.padW() / (float)image.width());
+    float maxV = 1.0f - ((float)image.padH() / (float)image.height());
+    #endif
+
     texture = LoadImageToTexture(image);
 
     // Create the mesh for the image view
-    //       X                  Y                   Z       U       V
+    //       X                  Y                          Z       U       V
     mesh = { 0.0f,                0.0f,                   0.0f,   0.0f,   0.0f,
-            (float)image.width(), 0.0f,                   0.0f,   1.0f,   0.0f, 
-            0.0f,                 (float)image.height(),  0.0f,   0.0f,   1.0f,
-            (float)image.width(), (float)image.height(),  0.0f,   1.0f,   1.0f  };
+            (float)image.width(), 0.0f,                   0.0f,   maxU,   0.0f, 
+            0.0f,                 (float)image.height(),  0.0f,   0.0f,   maxV,
+            (float)image.width(), (float)image.height(),  0.0f,   maxU,   maxV  };
 
     dirty = false;
   }

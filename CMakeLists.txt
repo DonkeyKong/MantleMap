@@ -1,15 +1,14 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.16)
 
 project("MantleMap")
 
 set(CMAKE_CXX_STANDARD 17)
 
-include(CheckIncludeFile)
-CHECK_INCLUDE_FILE(/opt/vc/include/bcm_host.h PI_HOST)
+find_file(BCM_HOST_PATH NAMES "bcm_host.h" PATHS /opt/vc/include/)
 
 # Dependency building
 if (APPLE)
-set (OPENSSL_ROOT_DIR /opt/homebrew/opt/openssl@3)
+    set (OPENSSL_ROOT_DIR /opt/homebrew/opt/openssl@3)
 endif()
 find_package(OpenSSL REQUIRED)
 
@@ -27,6 +26,9 @@ set(JSON_BuildTests OFF)
 add_subdirectory("deps/json")
 
 # rpi-rgb-led-matrix, Make, generates native libs
+if (BCM_HOST_PATH)
+    include("cmake/RgbMatrix.cmake")
+endif()
 
 # libpng, we build this ourselves because oh my god operating systems
 if (APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
@@ -58,20 +60,28 @@ add_executable( ${PROJECT_NAME}
                     src/TextLabel.cpp
                     src/UsbButton.cpp
                     src/WeatherScene.cpp
-                    deps/QR-Code-Generator/cpp/qrcodegen.cpp )
+                    deps/QR-Code-generator/cpp/qrcodegen.cpp )
 
 # Set some compiler flags used for features
-if (PI_HOST)
+if (BCM_HOST_PATH)
     target_compile_definitions(${PROJECT_NAME} PUBLIC "PI_HOST")       
     target_compile_definitions(${PROJECT_NAME} PUBLIC "LINUX_HID_CONTROLLER_SUPPORT")
     target_compile_definitions(${PROJECT_NAME} PUBLIC "LED_PANEL_SUPPORT")
+    target_link_libraries(${PROJECT_NAME} rgbmatrix)
+    target_include_directories(${PROJECT_NAME} PRIVATE "/opt/vc/include")
+    target_link_directories(${PROJECT_NAME} PRIVATE "/opt/vc/lib")
+    target_link_libraries(${PROJECT_NAME} brcmGLESv2 brcmEGL bcm_host)
 else()
     include("cmake/Angle.cmake")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "NPOT_TEXTURE_SUPPORT")
     target_compile_definitions(${PROJECT_NAME} PUBLIC "USING_ANGLE")
+    target_link_libraries(${PROJECT_NAME} angle)
+
+    
 endif()
 
-target_include_directories(${PROJECT_NAME} PRIVATE include ${PNG_INCLUDE_DIR} deps/QR-Code-Generator/cpp)
-target_link_libraries(${PROJECT_NAME} fmt nlohmann_json httplib png_static astro angle OpenSSL::SSL OpenSSL::Crypto)
+target_include_directories(${PROJECT_NAME} PRIVATE include ${PNG_INCLUDE_DIR} deps/QR-Code-generator/cpp)
+target_link_libraries(${PROJECT_NAME} fmt nlohmann_json httplib png_static astro rgbmatrix OpenSSL::SSL OpenSSL::Crypto stdc++fs)
 
 add_custom_target(copy_scenes ALL)
 

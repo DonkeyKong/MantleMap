@@ -10,13 +10,12 @@ using json = nlohmann::json;
 
 #ifdef PI_HOST
 static const std::string CONFIG_PATH = "/boot/MantleMapConfig.json";
-static const std::string SCENES_PATH = "/home/pi/MantleMap/scenes";
-static const std::string EPHEMERIDES_PATH = "/home/pi/MantleMap/de430/linux_p1550p2650.430";
 #else
 static const std::string CONFIG_PATH = "MantleMapConfig.json";
+#endif
 static const std::string SCENES_PATH = "scenes";
 static const std::string EPHEMERIDES_PATH = "linux_p1550p2650.430";
-#endif
+
 
 static double getJulianFromUnix( double unixSecs )
 {
@@ -27,7 +26,6 @@ static double getUnixFromJulian( double julian )
 {
   return (julian - 2440587.5) * 86400.0;
 }
-
 
 MapState::MapState()
 {

@@ -2,10 +2,17 @@
 #include <exception>
 
 #ifdef LED_PANEL_SUPPORT
+
+#include "ImageRGBA.hpp"
+
+#include "EGL/egl.h"
+#include "GLES2/gl2.h"
+#include "EGL/eglext.h"
+
 #include "led-matrix.h"
 #include "pixel-mapper.h"
 #include "content-streamer.h"
-using rgb_matrix::GPIO;
+
 using rgb_matrix::Canvas;
 using rgb_matrix::FrameCanvas;
 using rgb_matrix::RGBMatrix;
@@ -16,9 +23,9 @@ struct DisplayDevice::Impl
     MapState& map;
     RGBMatrix* matrix;
     FrameCanvas* offscreen_canvas;
-    uint8_t* CPUTextureCache;
+    ImageRGBA CPUTextureCache;
 
-    Impl(MapState& map) : map(map)
+    Impl(MapState& map) : map(map), CPUTextureCache(map.width, map.height)
     {
         // Mantle map parameters
         int cols = 64;
@@ -51,25 +58,21 @@ struct DisplayDevice::Impl
         
         // Create our double buffering canvas
         offscreen_canvas = matrix->CreateFrameCanvas();
-
-        // Create the CPUTextureCache in RGBA format
-        CPUTextureCache = (uint8_t*) malloc( _map.width * _map.height * 4 * sizeof(uint8_t) );
     }
 
     ~Impl()
     {
-        free(CPUTextureCache);
         matrix->Clear();
         delete matrix;
     }
 
-    DrawFromGLFramebuffer()
+    void DrawFromGLFramebuffer()
     {
         // Copy out to CPU
-        glReadPixels(0,0, map.width, map.height, GL_RGBA, GL_UNSIGNED_BYTE,  CPUTextureCache);
+        glReadPixels(0,0, map.width, map.height, GL_RGBA, GL_UNSIGNED_BYTE,  CPUTextureCache.data());
         
         // Copy into offscreen LED Matrix buffer
-        uint8_t* img =  CPUTextureCache;
+        uint8_t* img =  CPUTextureCache.data();
         for (int y=0; y < map.height; y++)
         {
             for (int x=0; x < map.width; x++)
@@ -88,18 +91,22 @@ DisplayDevice::DisplayDevice(MapState& map)
     pImpl_ = std::make_unique<Impl>(map);
 }
 
+DisplayDevice::~DisplayDevice()
+{
+}
+
 bool DisplayDevice::ProcessEvents()
 {
     // The LED panel does not have events!
     return true;
 }
 
-DisplayDevice::Update()
+void DisplayDevice::Update()
 {
 	pImpl_->DrawFromGLFramebuffer();
 }
 
-DisplayDevice::Clear()
+void DisplayDevice::Clear()
 {
     pImpl_->matrix->Clear();
 }

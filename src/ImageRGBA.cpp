@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <math.h>
 
 #include <png.h>
 #include <qrcodegen.hpp>
@@ -23,13 +24,56 @@ ImageRGBA::ImageRGBA()
 {
     width_ = 0;
     height_ = 0;
+    padW_ = 0;
+    padH_ = 0;
 }
 
 ImageRGBA::ImageRGBA(int width, int height)
 {
     width_ = width;
     height_ = height;
+    padW_ = 0;
+    padH_ = 0;
     data_.resize(width_ * height_ * 4);
+}
+
+void ImageRGBA::PadToPowerOfTwo()
+{
+    // If the image is empty, abort
+    if (width_ == 0 || height_ == 0)
+        return;
+
+    // Calculate the nearest larger-or-equal power of two dimensions
+    int potWidth = exp2(ceil(log2(width_)));
+    int potHeight = exp2(ceil(log2(height_)));
+    
+    // If the image already has power-of-two dims, abort
+    if (width_ == potWidth && height_ == potHeight)
+        return;
+
+    // Assert that stupid hasn't gone wrong and the image area is growing
+    if (width_ <= potWidth && height_ <= potHeight)
+    {
+        // Finally, expand the image row by row
+        std::vector<uint8_t> paddedData(potWidth * potHeight * 4);
+        uint8_t* paddedPtr = paddedData.data();
+        uint8_t* ptr = data_.data();
+        for (int y=0; y < height_; y++)
+        {
+            //void* memcpy( void* dest, const void* src, std::size_t count );
+            memcpy(paddedPtr, ptr, width_*4);
+            paddedPtr += (potWidth*4);
+            ptr += (width_*4);
+        }
+        padH_ = potHeight - height_;
+        padW_ = potWidth - width_;
+        width_ = potWidth;
+        height_ = potHeight;
+        data_ = std::move(paddedData);
+        return;
+    }
+    
+    throw std::runtime_error("Image padding error!");
 }
 
 ImageRGBA ImageRGBA::FromPngFile(std::string imagePath)
@@ -163,6 +207,16 @@ int ImageRGBA::width()
 int ImageRGBA::height()
 {
     return height_;
+}
+
+int ImageRGBA::padW()
+{
+    return padW_;
+}
+
+int ImageRGBA::padH()
+{
+    return padH_;
 }
 
 uint8_t& ImageRGBA::operator[](std::size_t idx)
