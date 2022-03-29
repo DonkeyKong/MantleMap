@@ -5,6 +5,7 @@ project("MantleMap")
 set(CMAKE_CXX_STANDARD 17)
 
 find_file(BCM_HOST_PATH NAMES "bcm_host.h" PATHS /opt/vc/include/)
+message("BCM host header: ${BCM_HOST_PATH}")
 
 # Dependency building
 if (APPLE)
@@ -76,12 +77,15 @@ else()
     target_compile_definitions(${PROJECT_NAME} PUBLIC "NPOT_TEXTURE_SUPPORT")
     target_compile_definitions(${PROJECT_NAME} PUBLIC "USING_ANGLE")
     target_link_libraries(${PROJECT_NAME} angle)
+endif()
 
-    
+# Link the c++ filesystem API under GCC
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_libraries(${PROJECT_NAME} stdc++fs)
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE include ${PNG_INCLUDE_DIR} deps/QR-Code-generator/cpp)
-target_link_libraries(${PROJECT_NAME} fmt nlohmann_json httplib png_static astro rgbmatrix OpenSSL::SSL OpenSSL::Crypto stdc++fs)
+target_link_libraries(${PROJECT_NAME} fmt nlohmann_json httplib png_static astro OpenSSL::SSL OpenSSL::Crypto)
 
 add_custom_target(copy_scenes ALL)
 
