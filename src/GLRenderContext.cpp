@@ -14,7 +14,7 @@
 #include <bcm_host.h>
 #endif
 
-#define check() assert(glGetError() == 0)
+#include "GLError.hpp"
 
 static const EGLint attribute_list[] =
 {
@@ -37,7 +37,7 @@ GLRenderContext::GLRenderContext(MapState& map) : _map(map)
   // Init the OpenGL context for this drawing
   initGL();
   
-  check();
+  print_if_glerror("RenderContext initGL");
 }
 
 GLRenderContext::~GLRenderContext()
@@ -57,33 +57,33 @@ void GLRenderContext::initGL()
   // Get an EGL display connection
   GDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
   assert(GDisplay!=EGL_NO_DISPLAY);
-  check();
+  print_if_glerror("Get EGL display");
   
   // Initialize the EGL display connection
   result = eglInitialize(GDisplay, NULL, NULL);
   assert(EGL_FALSE != result);
-  check();
+  print_if_glerror("Init EGL display");
 	
 	// Bind the OpenGL API so we can make calls to it
   result = eglBindAPI(EGL_OPENGL_ES_API);
   assert(EGL_FALSE != result);
-  check();
+  print_if_glerror("Bind OpenGL ES API");
     
   // Select an OpenGL configuration
 	EGLConfig config;
   result = eglChooseConfig(GDisplay, attribute_list, &config, 1, &num_config);
   assert(EGL_FALSE != result);
-  check();
+  print_if_glerror("Choose config");
     
   // Bind the OpenGL ES API
   result = eglBindAPI(EGL_OPENGL_ES_API);
   assert(EGL_FALSE != result);
-  check();
+  print_if_glerror("Bind OpenGL ES API");
   
   // Create an OpenGL rendering context
 	GContext = eglCreateContext(GDisplay, config, EGL_NO_CONTEXT, context_attributes);
 	assert(GContext!=EGL_NO_CONTEXT);
-	check();
+	print_if_glerror("Create render context");
 	
 	GSurface = eglCreatePbufferSurface(GDisplay, config, NULL);
   eglMakeCurrent(GDisplay, GSurface, GSurface, GContext);
@@ -100,7 +100,7 @@ void GLRenderContext::initGL()
   FramebufferName = 0;
   glGenFramebuffers(1, &FramebufferName);
   glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
-  check();
+  print_if_glerror("Generate framebuffer");
 
   // Create the render texture
   glGenTextures(1, &RenderedTexture);
@@ -114,7 +114,7 @@ void GLRenderContext::initGL()
   // Poor filtering. Needed !
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  check();
+  print_if_glerror("Setup fb texture params");
 }
 
 void GLRenderContext::BeginDraw()

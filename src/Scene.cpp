@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <filesystem>
 
-#define check() assert(glGetError() == 0)
+#include "GLError.hpp"
 
 Scene::Scene(MapState& map, SceneType sceneType, SceneLifetime sceneLifetime) : 
   map(map)
@@ -40,7 +40,7 @@ void Scene::initGL()
   if (!_initGLDone)
   {    
     initGLOverride();
-    check();
+    print_if_glerror("InitGL for scene " << SceneName());
     _initGLDone = true;
   }
 }
@@ -98,9 +98,9 @@ void Scene::Draw()
   if (_isVisible)
   {
     initGL();
-    check();
+    print_if_glerror("InitGL for scene " << SceneName());
     drawOverride();
-    check();
+    print_if_glerror("Draw for scene " << SceneName());
   }
 }
 
@@ -121,7 +121,7 @@ void Scene::drawOverride()
   for (auto element : Elements)
   {
     element->Draw();
-    check();
+    print_if_glerror("Draw for element in scene " << SceneName());
   }
 }
 

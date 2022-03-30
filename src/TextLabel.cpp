@@ -1,6 +1,6 @@
 #include "TextLabel.hpp"
 
-#define check() assert(glGetError() == 0)
+#include "GLError.hpp"
 
 GfxProgram TextLabel::_program;
 std::string TextLabel::_vertShaderName = "fontvertshader.glsl"; 
@@ -28,7 +28,6 @@ TextLabel::TextLabel(MapState& map) : SceneElement(map)
 
 void TextLabel::initGL()
 {  
-  check();
   if (!_program.isLoaded)
   {
     // Load and compile the shaders into a glsl program
@@ -41,7 +40,7 @@ void TextLabel::initGL()
     
     _vertexAttrib = glGetAttribLocation(_program.GetId(), "aVertex");
     _coordinateAttrib = glGetAttribLocation(_program.GetId(), "aTexCoord");
-    check();
+    print_if_glerror("InitGL for TextLabel");
   }
 }
 
@@ -207,7 +206,6 @@ float TextLabel::GetLength()
 
 void TextLabel::drawInternal()
 {
-  check();
   std::lock_guard<std::mutex> lock(_mutex);
 
   updateBuffers();
@@ -286,5 +284,5 @@ void TextLabel::drawInternal()
   // Draw the triangles!
   glDrawArrays(GL_TRIANGLES, 0, _text.size() * 2 * 3);
 
-  check();
+  print_if_glerror("Internal draw for TextLabel");
 }

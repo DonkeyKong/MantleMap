@@ -7,7 +7,7 @@
 #include <iostream>
 #include <assert.h>
 
-#define check() assert(glGetError() == 0)
+#include "GLError.hpp"
 
 bool GfxShader::checkShader()
 {
@@ -97,7 +97,7 @@ GLuint GfxProgram::LoadShaders(const char * vertex_file_path, const char * fragm
   glLinkProgram(Id);
   checkProgram(vertex_file_path, fragment_file_path);
   glUseProgram(GetId());
-  check();
+  print_if_glerror("Load shader program");
   isLoaded = true;
   return GetId();
 }
@@ -208,15 +208,20 @@ void GfxProgram::SetCameraFromPixelTransform(float mapWidth, float mapHeight, fl
   float tX = (2.0 / mapWidth) * x - 1.0f;
   float tY = -(2.0 / mapHeight) * y + 1.0f;
 
-  float xform[] = {   sX,     0.0f,   0.0f,   tX,
-                      0.0f,   sY,     0.0f,   tY,
-                      0.0f,   0.0f,   1.0f,   0.0f,
-                      0.0f,   0.0f,   0.0f,   1.0f };
+  // float xform[] = {   sX,     0.0f,   0.0f,   tX,
+  //                     0.0f,   sY,     0.0f,   tY,
+  //                     0.0f,   0.0f,   1.0f,   0.0f,
+  //                     0.0f,   0.0f,   0.0f,   1.0f };
+
+  float xform[] = {   sX,   0.0f,   0.0f,   0.0f,
+                    0.0f,     sY,   0.0f,   0.0f,
+                    0.0f,   0.0f,   1.0f,   0.0f,
+                      tX,     tY,   0.0f,   1.0f };
 
   GLint loc = glGetUniformLocation(GetId(), "uCameraFromPixelTransform");
   if (loc != -1)
   {
-    glUniformMatrix4fv(	loc, 1, GL_TRUE, xform);
+    glUniformMatrix4fv(	loc, 1, GL_FALSE, xform);
   }
 }
 

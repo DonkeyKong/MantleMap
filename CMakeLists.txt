@@ -68,6 +68,7 @@ add_executable( ${PROJECT_NAME}
 # Set some compiler flags used for features
 if (BCM_HOST_PATH)
     target_compile_definitions(${PROJECT_NAME} PUBLIC "PI_HOST")       
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "NPOT_TEXTURE_SUPPORT")
     target_compile_definitions(${PROJECT_NAME} PUBLIC "LINUX_HID_CONTROLLER_SUPPORT")
     target_compile_definitions(${PROJECT_NAME} PUBLIC "LED_PANEL_SUPPORT")
     target_link_libraries(${PROJECT_NAME} rgbmatrix)

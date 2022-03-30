@@ -1,5 +1,6 @@
 {
     "cmake.configureOnOpen": true,
+    "cmake.parallelJobs": 2,
     "files.associations": {
         "__tree": "cpp",
         "map": "cpp",

@@ -1,4 +1,5 @@
 #include "ImageView.hpp"
+#include "GLError.hpp"
 
 GfxProgram ImageView::_program;
 GLint ImageView::_vertexAttrib;
@@ -16,12 +17,16 @@ void ImageView::initGL()
 {  
   if (!_program.isLoaded)
   {
+    print_if_glerror("before initGL for ImageView");
     // Load and compile the shaders into a glsl program
     _program.LoadShaders(map.GetResourcePath("imagevertshader.glsl").c_str(),
                          map.GetResourcePath("imagefragshader.glsl").c_str());
     _vertexAttrib = glGetAttribLocation(_program.GetId(), "aVertex");
+    print_if_glerror("get vertex coord ImageView");
     _textureAttrib = glGetAttribLocation(_program.GetId(), "aTexCoord");
+    print_if_glerror("get tex coord ImageView");
     _program.SetCameraFromPixelTransform(map.width, map.height, x ,y, scale);
+    print_if_glerror("set transform for ImageView");
   }
 }
 
@@ -73,6 +78,7 @@ void ImageView::drawInternal()
     {
       glDeleteTextures(1, &texture);
       texture = 0;
+      print_if_glerror("delete texture for ImageView");
     }
 
 
@@ -80,12 +86,14 @@ void ImageView::drawInternal()
     float maxU = 1.0f;
     float maxV = 1.0f;
     #else
+    // Something subtle is wrong here causing the texture mapping to be off by a pixel or two
     image.PadToPowerOfTwo();
     float maxU = 1.0f - ((float)image.padW() / (float)image.width());
     float maxV = 1.0f - ((float)image.padH() / (float)image.height());
     #endif
 
     texture = LoadImageToTexture(image);
+    print_if_glerror("Load texture for ImageView");
 
     // Create the mesh for the image view
     //       X                  Y                          Z       U       V
@@ -103,13 +111,14 @@ void ImageView::drawInternal()
 	  glUseProgram(_program.GetId());
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
+    print_if_glerror("Texture bind for ImageView");
 
     // Tell our shader which units to look for each texture on
     _program.SetUniform("uTexture", 0);
-    //_program.SetUniform("uLocation", x, y);
     _program.SetUniform("uColor", r, g, b, a);
     _program.SetUniform("uTextureSize", (float)image.width(), (float)image.height());
     _program.SetCameraFromPixelTransform(map.width, map.height, x ,y, scale);
+    print_if_glerror("Shader setup for ImageView");
 
     glVertexAttribPointer(
                   _vertexAttrib,      // The attribute ID
@@ -135,5 +144,6 @@ void ImageView::drawInternal()
 
     // Draw the triangles!
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    print_if_glerror("DrawArrays for ImageView");
   }
 }

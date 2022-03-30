@@ -10,7 +10,7 @@ ConfigCodeScene::ConfigCodeScene(MapState& map) : Scene(map, SceneType::Overlay,
 {
   Elements.push_back(&_qrCode);
   _qrCode.SetImage(ImageRGBA::FromQrPayload("http://bubbulon.com"));
-  _qrCode.SetScale(2.0f);
+  _qrCode.SetScale(1.0f);
   _qrCode.SetPosition(map.width - _qrCode.GetWidth(), 0);
 }
 

@@ -1,5 +1,5 @@
 #include "DisplayDevice.hpp"
-#include <exception>
+#include "GLError.hpp"
 
 #ifdef LED_PANEL_SUPPORT
 
@@ -123,8 +123,6 @@ void DisplayDevice::Clear()
 #include <thread>
 #include <filesystem>
 
-#define check() assert(glGetError() == 0)
-
 static const EGLint attribute_list[] =
 {
     EGL_RED_SIZE, 8,
@@ -214,7 +212,7 @@ struct DisplayDevice::Impl
                 0.0f,               (float)map.height,  0.0f,   0.0f,   0.0f,
                 (float)map.width,   (float)map.height,  0.0f,   1.0f,   0.0f  };
         
-        check();
+        print_if_glerror("Creating mesh for emulated display");
     }
 
     void update()

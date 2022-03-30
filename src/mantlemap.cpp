@@ -213,14 +213,14 @@ int main(int argc, char *argv[])
   addScene(&mapTimeScene);
   addScene(&weatherScene);
   addScene(&cmdDebugScene);
-  addScene(&configScene);
+  //addScene(&configScene);
   cmdDebugScenePtr = &cmdDebugScene;
   
   // By default, always show mapTime, weather, and cmdDebug
   mapTimeScene.Show();
   weatherScene.Show();
   cmdDebugScene.Show();
-  configScene.Show();
+  //configScene.Show();
   
   // Bring up the default base scene
   swapBaseScene(mapState.defaultScene);
