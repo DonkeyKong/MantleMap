@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ImageRGBA.hpp"
+#include "Attributes.hpp"
 
 #include "GLES2/gl2.h"
 #include "EGL/egl.h"
@@ -44,6 +45,10 @@ public:
 	void SetUniform(const char* name, int value);
 	void SetUniform(const char* name, float value0, float value1);
 	void SetUniform(const char* name, float value0, float value1, float value2, float value3);
+	void SetUniform(const char* name, const Color& rgba);
+	void SetUniform(const char* name, const Position& xyz);
+	void SetUniform(const char* name, const Position2D& xy);
+	void SetUniform(const char* name, const TexCoord& uv);
 	void SetCameraFromPixelTransform(int mapWidth, int mapHeight);
 	void SetCameraFromPixelTransform(float mapWidth, float mapHeight, float tX, float tY, float scale);
 };

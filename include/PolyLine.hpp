@@ -7,16 +7,7 @@
 #include "LoadShaders.hpp"
 #include "SceneElement.hpp"
 #include "MapState.hpp"
-
-struct PolyLinePoint
-{
-  float x, y, z, r, g, b, a;
-};
-
-struct Color
-{
-  float r, g, b, a;
-};
+#include "Attributes.hpp"
 
 class PolyLine : public SceneElement
 {
@@ -24,8 +15,8 @@ class PolyLine : public SceneElement
     PolyLine(MapState&);
     virtual ~PolyLine();
 
-    void SetPoints(const std::vector<PolyLinePoint>& points);
-    void AddPoint(const PolyLinePoint& point);
+    void SetPoints(const std::vector<Vertex>& points);
+    void AddPoint(const Vertex& point);
     void SetThickness(float thickness);
     void SetLocation(float x, float y);
     void Move(float dx, float dy);
@@ -34,8 +25,8 @@ protected:
     virtual void initGL() override;
     virtual void drawInternal() override;
     
-    void createPoint(const PolyLinePoint& center, const PolyLinePoint& start, const PolyLinePoint& end, 
-                      float angleDelta, PolyLinePoint& point);
+    void createPoint(const Vertex& center, const Vertex& start, const Vertex& end, 
+                      float angleDelta, Vertex& point);
     void updateBuffers();
     void invalidateBuffers();
     
@@ -52,7 +43,7 @@ private:
     float _halfWidth;
     float _locX, _locY;
     Color _color;
-    std::vector<PolyLinePoint> _points;
-    std::vector<PolyLinePoint> _mesh;
+    std::vector<Vertex> _points;
+    std::vector<Vertex> _mesh;
 };
 

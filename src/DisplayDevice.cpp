@@ -111,6 +111,11 @@ void DisplayDevice::Clear()
     pImpl_->matrix->Clear();
 }
 
+bool DisplayDevice::Action()
+{
+    return false;
+}
+
 #else
 #include "EGL/egl.h"
 #include "EGL/eglplatform.h"
@@ -305,6 +310,9 @@ struct DisplayDevice::Impl
                         case KEY_ESCAPE:
                             running = false;
                             break;
+                        case KEY_SPACE:
+                            actions.push_back(true);
+                            break;
                         default:
                             break;
                     }
@@ -317,6 +325,17 @@ struct DisplayDevice::Impl
         }
 
         return running;
+    }
+
+    std::vector<bool> actions;
+    bool action()
+    {
+        if (actions.size() > 0)
+        {
+            actions.pop_back();
+            return true;
+        }
+        return false;
     }
 
     ~Impl()
@@ -350,6 +369,12 @@ void DisplayDevice::Update()
 void DisplayDevice::Clear() 
 {
     // no such thing
+}
+
+// Returns true if the display has an action queued, false otherwise
+bool DisplayDevice::Action()
+{
+    return pImpl_->action();
 }
 
 #endif

@@ -13,15 +13,9 @@ GLint TextLabel::_coordinateAttrib;
 
 TextLabel::TextLabel(MapState& map) : SceneElement(map)
 {
-  _r = 1.0;
-  _g = 1.0;
-  _b = 1.0;
-  _a = 1.0;
-  _x = 0;
-  _y = 0;
   _scale = 1.0f;
-  _alignment = TextAlignment::AlignToStart;
-  _direction = TextFlowDirection::Horizontal;
+  _alignment = HAlign::Left;
+  _direction = FlowDirection::Horizontal;
   _fontStyle = FontStyle::Regular;
   _textDirty = true;
 }
@@ -58,7 +52,7 @@ void TextLabel::SetText(std::string text)
   }
 }
 
-void TextLabel::SetFlowDirection(TextFlowDirection direction)
+void TextLabel::SetFlowDirection(FlowDirection direction)
 {
   if (_direction != direction)
   {
@@ -78,7 +72,7 @@ void TextLabel::SetFontStyle(FontStyle fontStyle, float scale)
   }
 }
 
-void TextLabel::SetAlignment(TextAlignment alignment)
+void TextLabel::SetAlignment(HAlign alignment)
 {
   if (_alignment != alignment)
   {
@@ -89,22 +83,18 @@ void TextLabel::SetAlignment(TextAlignment alignment)
 
 void TextLabel::SetColor(float r, float g, float b, float a)
 {
-  _r = r;
-  _g = g;
-  _b = b;
-  _a = a;
+  _color = {r, g, b, a};
 }
 
 void TextLabel::SetPosition(float x, float y)
 {
-  _x = x;
-  _y = y;
+  _pos = {x, y};
 }
 
 void TextLabel::invalidateBuffers()
 {
   // Clear the vertex buffer
-  _vertex.resize(0);
+  _vertexXYZ.resize(0);
 }
 
 float TextLabel::getFontTileWidth()
@@ -146,13 +136,13 @@ GLuint TextLabel::getFontTexture()
 void TextLabel::updateBuffers()
 {
   // Regardless of what's about to happen, make sure the geometry buffers are big enough
-  if (_vertex.size() < _text.size() * 18)
+  if (_vertexXYZ.size() < _text.size() * 18)
   {
-    int oldSize = _vertex.size() / 18;
-    _vertex.resize(_text.size() * 18);
+    int oldSize = _vertexXYZ.size() / 18;
+    _vertexXYZ.resize(_text.size() * 18);
         
-    int dx = _direction==TextFlowDirection::Horizontal ? 1 : 0;
-    int dy = _direction==TextFlowDirection::Vertical ? 1 : 0;
+    int dx = _direction==FlowDirection::Horizontal ? 1 : 0;
+    int dy = _direction==FlowDirection::Vertical ? 1 : 0;
     
     // Setup the triangle vertices
     //  0--2      3
@@ -161,20 +151,20 @@ void TextLabel::updateBuffers()
     
     for (int i = oldSize; i < (int)_text.size(); i++)
     {
-      _vertex[i*18+0 ] = 0+i*dx; _vertex[i*18+1 ] = 0+i*dy; _vertex[i*18+2 ] = 0;
-      _vertex[i*18+3 ] = 0+i*dx; _vertex[i*18+4 ] = 1+i*dy; _vertex[i*18+5 ] = 0;
-      _vertex[i*18+6 ] = 1+i*dx; _vertex[i*18+7 ] = 0+i*dy; _vertex[i*18+8 ] = 0;
+      _vertexXYZ[i*18+0 ] = 0+i*dx; _vertexXYZ[i*18+1 ] = 0+i*dy; _vertexXYZ[i*18+2 ] = 0;
+      _vertexXYZ[i*18+3 ] = 0+i*dx; _vertexXYZ[i*18+4 ] = 1+i*dy; _vertexXYZ[i*18+5 ] = 0;
+      _vertexXYZ[i*18+6 ] = 1+i*dx; _vertexXYZ[i*18+7 ] = 0+i*dy; _vertexXYZ[i*18+8 ] = 0;
       
-      _vertex[i*18+9 ] = 1+i*dx; _vertex[i*18+10] = 0+i*dy; _vertex[i*18+11] = 0;
-      _vertex[i*18+12] = 0+i*dx; _vertex[i*18+13] = 1+i*dy; _vertex[i*18+14] = 0;
-      _vertex[i*18+15] = 1+i*dx; _vertex[i*18+16] = 1+i*dy; _vertex[i*18+17] = 0;
+      _vertexXYZ[i*18+9 ] = 1+i*dx; _vertexXYZ[i*18+10] = 0+i*dy; _vertexXYZ[i*18+11] = 0;
+      _vertexXYZ[i*18+12] = 0+i*dx; _vertexXYZ[i*18+13] = 1+i*dy; _vertexXYZ[i*18+14] = 0;
+      _vertexXYZ[i*18+15] = 1+i*dx; _vertexXYZ[i*18+16] = 1+i*dy; _vertexXYZ[i*18+17] = 0;
     }
   }
 
   if (_textDirty)
   {
-    if (_texCoords.size() != _text.size() * 6 * 2)
-      _texCoords.resize(_text.size() * 6 * 2);
+    if (_vertexUV.size() != _text.size() * 6)
+      _vertexUV.resize(_text.size() * 6);
     
     float ldx = 1.0/16.0; // The font textures are 16x16
     float ldy = 1.0/16.0; // The font textures are 16x16
@@ -183,13 +173,12 @@ void TextLabel::updateBuffers()
       // Setup the texture coords
       float lX = (float)(_text[i] % 16) * ldx;
       float lY = (float)(_text[i] / 16 + 1) * ldy;
-      _texCoords[i*12+0 ] = lX;       _texCoords[i*12+1 ] = lY - ldy;
-      _texCoords[i*12+2 ] = lX;       _texCoords[i*12+3 ] = lY; 
-      _texCoords[i*12+4 ] = lX + ldx; _texCoords[i*12+5 ] = lY - ldy; 
-      
-      _texCoords[i*12+6 ] = lX + ldx; _texCoords[i*12+7 ] = lY - ldy;
-      _texCoords[i*12+8 ] = lX;       _texCoords[i*12+9 ] = lY; 
-      _texCoords[i*12+10] = lX + ldx; _texCoords[i*12+11] = lY; 
+      _vertexUV[i*6+0] = { lX,       lY - ldy };
+      _vertexUV[i*6+1] = { lX,       lY       }; 
+      _vertexUV[i*6+2] = { lX + ldx, lY - ldy }; 
+      _vertexUV[i*6+3] = { lX + ldx, lY - ldy };
+      _vertexUV[i*6+4] = { lX,       lY       }; 
+      _vertexUV[i*6+5] = { lX + ldx, lY       }; 
     }
   
     _textDirty = false;
@@ -198,7 +187,7 @@ void TextLabel::updateBuffers()
 
 float TextLabel::GetLength()
 {
-  if (_direction==TextFlowDirection::Horizontal)
+  if (_direction==FlowDirection::Horizontal)
     return _text.size() * getFontTileWidth() * _scale;
   else
     return _text.size() * getFontTileHeight() * _scale;
@@ -228,32 +217,32 @@ void TextLabel::drawInternal()
   _program.SetUniform("uFontTexture", 0);
   
   // Set a couple more uniforms
-  _program.SetUniform("uColor", _r, _g, _b, _a);
+  _program.SetUniform("uColor", _color);
   
-  if (_alignment == TextAlignment::AlignToStart)
+  if (_alignment == HAlign::Left)
   {
-    _program.SetUniform("uLocation", _x, _y);
+    _program.SetUniform("uLocation", _pos);
   }
-  else if (_alignment == TextAlignment::AlignToEnd)
+  else if (_alignment == HAlign::Right)
   {
-    if (_direction==TextFlowDirection::Horizontal)
+    if (_direction==FlowDirection::Horizontal)
     {
-      _program.SetUniform("uLocation", _x - GetLength(), _y);
+      _program.SetUniform("uLocation", _pos.x - GetLength(), _pos.y);
     }
     else
     {
-      _program.SetUniform("uLocation", _x, _y - GetLength());
+      _program.SetUniform("uLocation", _pos.x, _pos.y - GetLength());
     }
   }
   else
   {
-    if (_direction==TextFlowDirection::Horizontal)
+    if (_direction==FlowDirection::Horizontal)
     {
-      _program.SetUniform("uLocation", _x - GetLength() / 2.0f, _y);
+      _program.SetUniform("uLocation", _pos.x - GetLength() / 2.0f, _pos.y);
     }
     else
     {
-      _program.SetUniform("uLocation", _x, _y - GetLength() / 2.0f);
+      _program.SetUniform("uLocation", _pos.x, _pos.y - GetLength() / 2.0f);
     }
   }
   
@@ -265,7 +254,7 @@ void TextLabel::drawInternal()
                       GL_FLOAT,           // type
                       GL_FALSE,           // normalized?
                       0,                  // stride
-                      &_vertex[0]         // underlying data
+                      &_vertexXYZ[0]         // underlying data
               );
 
    glEnableVertexAttribArray ( _vertexAttrib );
@@ -276,7 +265,7 @@ void TextLabel::drawInternal()
                     GL_FLOAT,           // type
                     GL_FALSE,           // normalized?
                     0,                  // stride
-                    &_texCoords[0]      // underlying data
+                    &_vertexUV[0]      // underlying data
             );
             
   glEnableVertexAttribArray(_coordinateAttrib);

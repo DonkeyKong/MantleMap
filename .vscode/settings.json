@@ -108,6 +108,9 @@
         "utility": "cpp",
         "__assert": "cpp",
         "filesystem": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "simd": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp"
     }
 }

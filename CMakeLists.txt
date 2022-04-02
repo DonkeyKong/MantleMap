@@ -42,6 +42,7 @@ set(PNG_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/deps/libpng
                     ${CMAKE_CURRENT_BINARY_DIR}/deps/libpng)
 
 add_executable( ${PROJECT_NAME} 
+                    src/Attributes.cpp
                     src/Astronomy.cpp
                     src/CmdDebugScene.cpp
                     src/ConfigCodeScene.cpp
@@ -56,12 +57,14 @@ add_executable( ${PROJECT_NAME}
                     src/MapState.cpp
                     src/MapTimeScene.cpp
                     src/NaturalEarth.cpp
+                    src/PhysicsScene.cpp
                     src/PolyLine.cpp
                     src/Scene.cpp
                     src/SceneElement.cpp
                     src/SolarScene.cpp
                     src/TextLabel.cpp
                     src/UsbButton.cpp
+                    src/Utils.cpp
                     src/WeatherScene.cpp
                     deps/QR-Code-generator/cpp/qrcodegen.cpp )
 

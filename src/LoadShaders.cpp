@@ -166,6 +166,42 @@ void GfxProgram::SetUniform(const char* name, float value0, float value1, float 
     }
 }
 
+void GfxProgram::SetUniform(const char* name, const Color& rgba)
+{
+    GLint loc = glGetUniformLocation(GetId(), name);
+    if (loc != -1)
+    {
+       glUniform4f(loc, rgba.r, rgba.g, rgba.b, rgba.a);
+    }
+}
+
+void GfxProgram::SetUniform(const char* name, const Position& xyz)
+{
+    GLint loc = glGetUniformLocation(GetId(), name);
+    if (loc != -1)
+    {
+       glUniform3f(loc, xyz.x, xyz.y, xyz.z);
+    }
+}
+
+void GfxProgram::SetUniform(const char* name, const Position2D& xy)
+{
+    GLint loc = glGetUniformLocation(GetId(), name);
+    if (loc != -1)
+    {
+       glUniform2f(loc, xy.x, xy.y);
+    }
+}
+
+void GfxProgram::SetUniform(const char* name, const TexCoord& uv)
+{
+    GLint loc = glGetUniformLocation(GetId(), name);
+    if (loc != -1)
+    {
+       glUniform2f(loc, uv.u, uv.v);
+    }
+}
+
 void GfxProgram::SetUniform(const char* name, int value)
 {
   GLint loc = glGetUniformLocation(GetId(), name);

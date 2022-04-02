@@ -23,11 +23,11 @@ DebugTransformScene::DebugTransformScene(MapState& map) : Scene(map, SceneType::
     
     _label2.SetText("DEBUG");
     _label2.SetPosition(0,0);
-    _label2.SetFlowDirection(TextFlowDirection::Vertical);
+    _label2.SetFlowDirection(FlowDirection::Vertical);
     
     _label3.SetText("TRANSFORMATION");
     _label3.SetPosition(186,0);
-    _label3.SetFlowDirection(TextFlowDirection::Vertical);
+    _label3.SetFlowDirection(FlowDirection::Vertical);
     
     _label4.SetText("TEST");
     _label4.SetPosition(168,0);

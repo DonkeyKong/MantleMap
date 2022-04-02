@@ -4,30 +4,11 @@
 #include "LoadShaders.hpp"
 #include "SceneElement.hpp"
 #include "MapState.hpp"
+#include "Attributes.hpp"
 
 #include <vector>
 #include <string>
 #include <mutex>
-
-enum class TextFlowDirection
-{
-  Horizontal,
-  Vertical
-};
-
-enum class FontStyle
-{
-  Narrow,
-  Regular,
-  BigNarrow
-};
-
-enum class TextAlignment
-{
-  AlignToStart,
-  AlignToEnd,
-  Center
-};
 
 class TextLabel : public SceneElement
 {
@@ -39,8 +20,8 @@ class TextLabel : public SceneElement
     void SetFontStyle(FontStyle style, float scale = 1.0f);
     void SetColor(float r, float g, float b, float a);
     void SetPosition(float x, float y);
-    void SetFlowDirection(TextFlowDirection direction);
-    void SetAlignment(TextAlignment alignment);
+    void SetFlowDirection(FlowDirection direction);
+    void SetAlignment(HAlign alignment);
     float GetLength();
 
 protected:
@@ -67,15 +48,14 @@ private:
     // Buffers containing render data
     bool _textDirty;
     FontStyle _fontStyle;
-    TextAlignment _alignment;
-    TextFlowDirection _direction;
+    HAlign _alignment;
+    FlowDirection _direction;
     float _scale;
     std::string _text;
-    float _r, _g, _b, _a, _x, _y;
-    std::vector<float> _vertex;
-    std::vector<float> _texCoords;
-    std::vector<float> _color;
-    
+    Position2D _pos;
+    Color _color;
+    std::vector<float> _vertexXYZ;
+    std::vector<TexCoord> _vertexUV;
 };
 
 #endif

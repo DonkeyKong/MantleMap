@@ -26,6 +26,11 @@ class DisplayDevice final
         // and the program should exit
         bool ProcessEvents();
 
+        // Returns true if the display has an action queued, false otherwise
+        // An "action" is just a simple momentary signal that cycles through
+        // system functions
+        bool Action();
+
     private:
         struct Impl;
         std::unique_ptr<Impl> pImpl_;

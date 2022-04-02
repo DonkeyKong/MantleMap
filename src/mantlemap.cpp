@@ -1,4 +1,4 @@
-#include "Utils.h"
+#include "Utils.hpp"
 #include "MapState.hpp"
 #include "LoadShaders.hpp"
 #include "GLRenderContext.hpp"
@@ -13,6 +13,7 @@
 #include "TextLabel.hpp"
 #include "DisplayDevice.hpp"
 #include "UsbButton.hpp"
+#include "PhysicsScene.hpp"
 
 #include <unistd.h>
 #include <signal.h>
@@ -22,6 +23,8 @@
 #include <string>
 #include <vector>
 #include <iostream>
+
+#include <fmt/format.h>
 
 #define HTTP_SERVER_PORT 80
 
@@ -206,6 +209,7 @@ int main(int argc, char *argv[])
   CmdDebugScene cmdDebugScene(mapState);
   SolarScene solarScene(mapState);
   ConfigCodeScene configScene(mapState);
+  PhysicsScene physicsScene(mapState);
   
   addScene(&debugScene);
   addScene(&solarScene);
@@ -213,14 +217,14 @@ int main(int argc, char *argv[])
   addScene(&mapTimeScene);
   addScene(&weatherScene);
   addScene(&cmdDebugScene);
-  //addScene(&configScene);
+  addScene(&configScene);
+  addScene(&physicsScene);
   cmdDebugScenePtr = &cmdDebugScene;
   
   // By default, always show mapTime, weather, and cmdDebug
   mapTimeScene.Show();
   weatherScene.Show();
   cmdDebugScene.Show();
-  //configScene.Show();
   
   // Bring up the default base scene
   swapBaseScene(mapState.defaultScene);
@@ -243,6 +247,16 @@ int main(int argc, char *argv[])
   // This is 1/60th of a second in nanoseconds
   auto expectedFrameTime = std::chrono::high_resolution_clock::duration(std::chrono::nanoseconds(16666667));
 
+  int buttonAction = 0;
+  std::vector<std::string> buttonActions 
+  {
+    "base layer ConfigCode",
+    "base layer Light",
+    "base layer Physics",
+    "sleep",
+    "reset",
+  };
+
   // Start the main render loop!
   while (!interrupt_received && !internal_exit) 
   {
@@ -253,18 +267,10 @@ int main(int argc, char *argv[])
     }
 
     // Handle button events
-    while (button.pressed())
+    while (button.pressed() || display.Action())
     {
-      if (mapState.GetSleep())
-      {
-        // Wake and reset if sleeping
-        executeCommand("Button", "reset", mapState);
-      }
-      else
-      {
-        // Sleep if awake
-        executeCommand("Button", "sleep", mapState);
-      }
+      executeCommand("Button", buttonActions[buttonAction].c_str(), mapState);
+      buttonAction = (buttonAction + 1) % buttonActions.size();
     }
 
     // TBD: handle REST events
@@ -274,7 +280,7 @@ int main(int argc, char *argv[])
     {
       display.Clear();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    }  
     else
     {
       render.BeginDraw();

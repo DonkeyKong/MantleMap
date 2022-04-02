@@ -37,13 +37,13 @@ PolyLine::~PolyLine()
 {
 }
 
-void PolyLine::SetPoints(const std::vector<PolyLinePoint>& points)
+void PolyLine::SetPoints(const std::vector<Vertex>& points)
 {
   _points = points;
   invalidateBuffers();
 }
 
-void PolyLine::AddPoint(const PolyLinePoint& point)
+void PolyLine::AddPoint(const Vertex& point)
 {
   _points.push_back(point);
   invalidateBuffers();
@@ -78,13 +78,13 @@ void PolyLine::invalidateBuffers()
   _dirty = true;
 }
 
-void PolyLine::createPoint(const PolyLinePoint& center, const PolyLinePoint& start, const PolyLinePoint& end, 
-                 float angleDelta, PolyLinePoint& point)
+void PolyLine::createPoint(const Vertex& center, const Vertex& start, const Vertex& end, 
+                 float angleDelta, Vertex& point)
 {
   point = center;
-  float baseAngle = atan2( end.y-start.y, end.x-start.x);
-  point.x = center.x + _halfWidth * cos(baseAngle + angleDelta);
-  point.y = center.y + _halfWidth * sin(baseAngle + angleDelta);
+  float baseAngle = atan2( end.pos.y-start.pos.y, end.pos.x-start.pos.x);
+  point.pos.x = center.pos.x + _halfWidth * cos(baseAngle + angleDelta);
+  point.pos.y = center.pos.y + _halfWidth * sin(baseAngle + angleDelta);
 }
 
 void PolyLine::updateBuffers()

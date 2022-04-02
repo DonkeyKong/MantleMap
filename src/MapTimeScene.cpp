@@ -44,7 +44,7 @@ void MapTimeScene::updateOverride()
     _timeLabel.SetFontStyle(FontStyle::Regular, 2.0f);
     _timeLabel.SetColor(0.5, 0.5, 0.5, 1.0);
     _timeLabel.SetPosition(96, 74);
-    _timeLabel.SetAlignment(TextAlignment::Center);
+    _timeLabel.SetAlignment(HAlign::Center);
     
     // Setup the date label
     std::strftime(formatStr, 255, "%B %d, %Y", &nowLocal );
@@ -52,7 +52,7 @@ void MapTimeScene::updateOverride()
     _monthLabel.SetFontStyle(FontStyle::Narrow);
     _monthLabel.SetColor(0.4, 0.4, 0.4, 1.0);
     _monthLabel.SetPosition(96, 88);
-    _monthLabel.SetAlignment(TextAlignment::Center);
+    _monthLabel.SetAlignment(HAlign::Center);
     
     // Disable Month and Year labels
     _dayLabel.SetText("");
@@ -66,7 +66,7 @@ void MapTimeScene::updateOverride()
     _timeLabel.SetFontStyle(FontStyle::Regular);
     _timeLabel.SetColor(0.25, 0.25, 0.25, 1.0);
     _timeLabel.SetPosition(192, 90);
-    _timeLabel.SetAlignment(TextAlignment::AlignToEnd);
+    _timeLabel.SetAlignment(HAlign::Right);
     
     // Month Label
     std::strftime(formatStr, 255, "%B", &nowLocal );
@@ -76,14 +76,14 @@ void MapTimeScene::updateOverride()
     _monthLabel.SetFontStyle(FontStyle::Narrow);
     _monthLabel.SetColor(0.25, 0.25, 0.25, 1.0);
     _monthLabel.SetPosition(192, 0);
-    _monthLabel.SetAlignment(TextAlignment::AlignToEnd);
+    _monthLabel.SetAlignment(HAlign::Right);
     
     // Day label
     std::strftime(formatStr, 255, "%d", &nowLocal );
     _dayLabel.SetText(formatStr);
     _dayLabel.SetColor(0.25, 0.25, 0.25, 1.0);
     _dayLabel.SetPosition(192, 6);
-    _dayLabel.SetAlignment(TextAlignment::AlignToEnd);
+    _dayLabel.SetAlignment(HAlign::Right);
 
     // Year Label
     std::strftime(formatStr, 255, "%Y", &nowLocal );
@@ -91,6 +91,6 @@ void MapTimeScene::updateOverride()
     _yearLabel.SetFontStyle(FontStyle::Narrow);
     _yearLabel.SetColor(0.25, 0.25, 0.25, 1.0);
     _yearLabel.SetPosition(192, 12);
-    _yearLabel.SetAlignment(TextAlignment::AlignToEnd);
+    _yearLabel.SetAlignment(HAlign::Right);
   }
 }

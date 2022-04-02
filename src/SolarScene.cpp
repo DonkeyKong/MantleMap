@@ -28,9 +28,9 @@ SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetim
   _sunsetJulian = 0;
   
   _horizonLine.AddPoint({ 0, (float)_vOffset + 90.0f * (float)_vScale, 0,
-                          0.2f, 0.2f, 0.2f, 1.0f});
+                          {0.2f, 0.2f, 0.2f, 1.0f}});
   _horizonLine.AddPoint({ 1.0f * (float)_hScale, (float)_vOffset + 90.0f * (float)_vScale, 0,
-    0.2f, 0.2f, 0.2f, 1.0f});
+    {0.2f, 0.2f, 0.2f, 1.0f}});
   _horizonLine.SetThickness(2.0f);
     
   float sunRadius = 5.0f;
@@ -38,9 +38,9 @@ SolarScene::SolarScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetim
   for (float a = 0; a <= (float)(2.1*M_PI); a+= 0.1f)
   {
     _sunCircle.AddPoint({ sunRadius * sin(a), sunRadius * cos(a), 0,
-    1, 1, 1, 1});
+    {1, 1, 1, 1}});
     _moonCircle.AddPoint({ moonRadius * sin(a), moonRadius * cos(a), 0,
-    1, 1, 1, 1});
+    {1, 1, 1, 1}});
   }
   
   _lunarLine.SetThickness(1.5f);
@@ -104,7 +104,7 @@ void SolarScene::updateOverride()
     _endJulian = _startJulian+1.0;
 
     // Create the sun polyline
-    std::vector<PolyLinePoint> points;
+    std::vector<Vertex> points;
     double sunriseJulianGuess = 0;
     double sunsetJulianGuess = 0;
     for (double t = _startJulian; t <= (_endJulian+0.05); t += (4.0/(double)map.width))
@@ -114,10 +114,12 @@ void SolarScene::updateOverride()
       double degAway = map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg);
       points.push_back(
       {
-        (float)((t - _startJulian) * _hScale),
-        (float)(_vOffset + degAway * _vScale),
-        0,
-        0.5f, 0.5f, 0.25f, 1.0f
+        {
+          (float)((t - _startJulian) * _hScale),
+          (float)(_vOffset + degAway * _vScale),
+          0,
+        },
+        {0.5f, 0.5f, 0.25f, 1.0f}
       });
       
       if (degAway < 90.0 && sunriseJulianGuess == 0)
@@ -174,17 +176,19 @@ void SolarScene::updateOverride()
     _endJulianMoon = _startJulianMoon+1.0;
     
     // Create the moon polyline
-    std::vector<PolyLinePoint> points; 
+    std::vector<Vertex> points; 
     for (double t = _startJulianMoon; t <= (_endJulianMoon+0.05); t += (4.0/(double)map.width))
     {
       double latitudeDeg, longitudeDeg;
       map.AstronomyService.GetLunarPoint(t, latitudeDeg, longitudeDeg);
       points.push_back(
       {
-        (float)((t - _startJulianMoon) * _hScale),
-        (float)(_vOffset + map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg) * _vScale),
-        0,
-        0.25f, 0.25f, 0.5f, 1.0f
+        {
+          (float)((t - _startJulianMoon) * _hScale),
+          (float)(_vOffset + map.GetAngleDistInDegFromHomeTangent(latitudeDeg, longitudeDeg) * _vScale),
+          0
+        },
+        {0.25f, 0.25f, 0.5f, 1.0f}
       });
     }
     _lunarLine.SetPoints(points);
@@ -217,7 +221,7 @@ void SolarScene::updateOverride()
     _sunriseLabel.SetFontStyle(FontStyle::Narrow);
     _sunriseLabel.SetColor(0.5,0.375,0.0f,1.0f);
     _sunriseLabel.SetPosition( MIN(round((_sunriseJulian - _startJulian) * _hScale), 50), 80);
-    _sunriseLabel.SetAlignment(TextAlignment::Center);
+    _sunriseLabel.SetAlignment(HAlign::Center);
   }
   
   if (_sunsetJulian != 0) 
@@ -229,7 +233,7 @@ void SolarScene::updateOverride()
     _sunsetLabel.SetColor(0.5,0.375,0.0f,1.0f);
     _sunsetLabel.SetPosition(  MAX(round((_sunsetJulian - _startJulian) * _hScale), 142), 
                                80);
-    _sunsetLabel.SetAlignment(TextAlignment::Center);
+    _sunsetLabel.SetAlignment(HAlign::Center);
   }
 }
 
