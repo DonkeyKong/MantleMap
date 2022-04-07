@@ -14,7 +14,10 @@ ConfigCodeScene::ConfigCodeScene(ConfigService& config) : Scene(config, SceneTyp
   Elements.push_back(&urlLabel);
   Elements.push_back(&qrCode);
 
-  qrCode.SetImage(ImageRGBA::FromQrPayload("Network Device Not Found"));
+  // Get the URL to show from the HttpService
+  std::string configURL = "http://192.168.7.133";
+
+  qrCode.SetImage(ImageRGBA::FromQrPayload(configURL));
   qrCode.SetScale(1.0f);
   qrCode.SetColor(0.5, 0.5, 0.5, 1.0);
   qrCode.SetPosition(config.width / 2.0f -  qrCode.GetWidth() / 2.0f, 
@@ -25,7 +28,7 @@ ConfigCodeScene::ConfigCodeScene(ConfigService& config) : Scene(config, SceneTyp
   scanToConfigureLabel.SetAlignment(HAlign::Center);
   scanToConfigureLabel.SetPosition(config.width / 2.0f, config.height / 2.0f - 32);
   
-  urlLabel.SetText("http://192.168.7.133");
+  urlLabel.SetText(configURL);
   urlLabel.SetFontStyle(FontStyle::Narrow);
   urlLabel.SetAlignment(HAlign::Center);
   urlLabel.SetPosition(config.width / 2.0f, config.height / 2.0f + 22);
