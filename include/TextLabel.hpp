@@ -3,7 +3,7 @@
 
 #include "LoadShaders.hpp"
 #include "SceneElement.hpp"
-#include "MapState.hpp"
+#include "ConfigService.hpp"
 #include "Attributes.hpp"
 
 #include <vector>
@@ -13,7 +13,7 @@
 class TextLabel : public SceneElement
 {
  public:
-    TextLabel(MapState&);
+    TextLabel(ConfigService&);
     virtual ~TextLabel();
     
     void SetText(std::string);

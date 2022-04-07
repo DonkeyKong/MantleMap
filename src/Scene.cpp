@@ -5,8 +5,8 @@
 
 #include "GLError.hpp"
 
-Scene::Scene(MapState& map, SceneType sceneType, SceneLifetime sceneLifetime) : 
-  map(map)
+Scene::Scene(ConfigService& map, SceneType sceneType, SceneLifetime sceneLifetime) : 
+  config(map)
 {
   _initGLDone = false;
   _isVisible = false;
@@ -22,12 +22,12 @@ Scene::~Scene()
 
 std::string Scene::GetResourcePath(std::string resourceName)
 {
-  auto filePath = std::filesystem::path(map.sceneResourcePath) / SceneResourceDir() / resourceName;
+  auto filePath = std::filesystem::path(config.sceneResourcePath) / SceneResourceDir() / resourceName;
   if (std::filesystem::exists(filePath))
   {
     return filePath;
   }
-  filePath = std::filesystem::path(map.sceneResourcePath) / "Shared" / resourceName;
+  filePath = std::filesystem::path(config.sceneResourcePath) / "Shared" / resourceName;
   if (std::filesystem::exists(filePath))
   {
     return filePath;

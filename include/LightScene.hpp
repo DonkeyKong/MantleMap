@@ -1,11 +1,12 @@
 #pragma once
 
 #include "Scene.hpp"
+#include "AstronomyService.hpp"
 
 class LightScene : public Scene
 {
  public:
-    LightScene(MapState& map);
+    LightScene(ConfigService& config, AstronomyService& astro);
     ~LightScene();
     
     const char* SceneName() override;
@@ -40,4 +41,5 @@ private:
     NaturalEarth projection;
     GLuint LonLatLookupTexture;
     GLfloat fullscreen_rect_vertex_buffer_data[12];
+    AstronomyService& astro;
 };

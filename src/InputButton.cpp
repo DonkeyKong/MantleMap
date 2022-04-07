@@ -1,4 +1,4 @@
-#include "UsbButton.hpp"
+#include "InputButton.hpp"
 
 #ifdef LINUX_HID_CONTROLLER_SUPPORT
 
@@ -122,29 +122,13 @@ UsbButton::~UsbButton()
     close(pImpl_->buttonFd);
 }
 
-bool UsbButton::pressed()
+bool UsbButton::PopAction()
 {
     if (pImpl_->buttonFd != -1 && read_event(pImpl_->buttonFd, &pImpl_->event) == 0)
     {
-      return (pImpl_->event.type == JS_EVENT_BUTTON && !pImpl_->event.value);
+      return (pImpl_->event.type == JS_EVENT_BUTTON && !pImpl_->event.value) ? ButtonAction::Tap : ButtonAction::Unsupported;
     }
-    return false;
-}
-#else
-
-// Dummy implementation
-
-struct UsbButton::Impl
-{
-};
-
-UsbButton::UsbButton() {}
-
-UsbButton::~UsbButton() {}
-
-bool UsbButton::pressed() 
-{ 
-    return false; 
+    return ButtonAction::None;
 }
 
 #endif

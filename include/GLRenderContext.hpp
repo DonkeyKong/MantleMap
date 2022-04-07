@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MapState.hpp"
+#include "ConfigService.hpp"
 
 #include "EGL/egl.h"
 #include "EGL/eglplatform.h"
@@ -10,7 +10,7 @@
 class GLRenderContext
 {
  public:
-    GLRenderContext(MapState& map);
+    GLRenderContext(ConfigService& map);
     ~GLRenderContext();
     
     // Draw the specified scene to the RGB matrix
@@ -18,7 +18,7 @@ class GLRenderContext
 
   private:
     void initGL();
-    MapState& _map;
+    ConfigService& _map;
     
     EGLDisplay GDisplay;
     EGLContext GContext;

@@ -3,17 +3,20 @@
 #include "Scene.hpp"
 
 #include "ImageView.hpp"
+#include "TextLabel.hpp"
 
 class ConfigCodeScene : public Scene
 {
  public:
-    ConfigCodeScene(MapState& map);
+    ConfigCodeScene(ConfigService& map);
     ~ConfigCodeScene();
     
     const char* SceneName() override;
     const char* SceneResourceDir() override;
     
 private:
-    ImageView _qrCode;
+    ImageView qrCode;
+    TextLabel scanToConfigureLabel;
+    TextLabel urlLabel;
 };
 

@@ -3,7 +3,8 @@
 #include "LoadShaders.hpp"
 #include "NaturalEarth.hpp"
 #include "SceneElement.hpp"
-#include "MapState.hpp"
+#include "ConfigService.hpp"
+#include "TimeService.hpp"
 
 #include "EGL/egl.h"
 #include "EGL/eglplatform.h"
@@ -31,7 +32,7 @@ class Scene
 {
  public:
     // No GL calls allowed here
-    Scene(MapState& map, SceneType sceneType, SceneLifetime sceneLifetime);
+    Scene(ConfigService& map, SceneType sceneType, SceneLifetime sceneLifetime);
     virtual ~Scene();
     
     // Provide a user readable or TTS speakabe name for this scene
@@ -88,7 +89,7 @@ class Scene
     GfxProgram loadGraphicsProgram(std::string vertShaderName, std::string fragShaderName);
 
     std::vector<SceneElement*> Elements;
-    MapState& map;
+    ConfigService& config;
     std::string BaseSceneName;
     
   private:

@@ -5,7 +5,7 @@
 #include <chrono>
 #include <ctime>
 
-PhysicsScene::PhysicsScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetime::Manual),
+PhysicsScene::PhysicsScene(ConfigService& map) : Scene(map, SceneType::Base, SceneLifetime::Manual),
     points(150)
 {
     srand(time(nullptr));
@@ -13,10 +13,11 @@ PhysicsScene::PhysicsScene(MapState& map) : Scene(map, SceneType::Base, SceneLif
 
 void PhysicsScene::showOverride()
 {
+    updateCounter = 0;
     // Initialize the list of particles
     for (int i=0; i < points.size(); i++)
     {
-        points[i].pos = Random(Position{0.0f, 0.0f, 0.0f}, Position{(float)map.width, (float)map.height, 0.0f});
+        points[i].pos = Random(Position{0.0f, 0.0f, 0.0f}, Position{(float)config.width, (float)config.height, 0.0f});
         points[i].size = Random(0.5f, 3.0f);
         points[i].mass = points[i].size * 5.0f; //Random(10.0f, 20.0f);
         points[i].velocity = Random(Position{-0.05f, -0.05f, 0.0f}, Position{0.05f, 0.05f, 0.0f});
@@ -47,7 +48,7 @@ void PhysicsScene::initGLOverride()
     {
         // Load and compile the shaders into a glsl program
         program = loadGraphicsProgram("particlevert.glsl", "particlefrag.glsl");
-        program.SetCameraFromPixelTransform(map.width,map.height);
+        program.SetCameraFromPixelTransform(config.width,config.height);
         vertexAttrib = glGetAttribLocation(program.GetId(), "aVertex");
         colorAttrib = glGetAttribLocation(program.GetId(), "aColor");
         pointSizeAttrib = glGetAttribLocation(program.GetId(), "aPointSize");
@@ -122,6 +123,17 @@ static inline void gravForce(const Position& p1, const float& m1, const Position
 
 void PhysicsScene::updateOverride()
 {
+    updateCounter = (updateCounter + 1) % 30000;
+
+    PhysicsPoint phantom
+    {
+        {(float)config.width / 2.0f, (float)config.height / 2.0f, 0.0f},
+        {},
+        0,
+        5.0,
+        {}
+    };
+
     Position a1, a2;
     for (int i=0; i < points.size(); i++)
     {
@@ -133,6 +145,13 @@ void PhysicsScene::updateOverride()
             points[j].velocity.x += a2.x;
             points[j].velocity.y += a2.y;
         }
+
+        // Apply the phantom centering acceleration
+        gravForce(points[i].pos, points[i].mass, phantom.pos, phantom.mass, a1, a2);
+        points[i].velocity.x += a1.x;
+        points[i].velocity.y += a1.y;
+
+        // Move the point for this time step
         points[i].pos.x += points[i].velocity.x;
         points[i].pos.y += points[i].velocity.y;
     }

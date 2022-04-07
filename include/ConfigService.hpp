@@ -1,21 +1,12 @@
 #pragma once
 
-#include "Astronomy.hpp"
-
 #include <chrono>
 #include <string>
 #include <ctime>
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-typedef std::chrono::duration<double, std::ratio<1, 1>> fractionalSeconds;
-typedef std::chrono::duration<double, std::ratio<86400, 1>> fractionalDays;
-typedef std::chrono::time_point<std::chrono::system_clock, fractionalDays > timepoint_t;
-typedef std::chrono::time_point<std::chrono::system_clock, fractionalSeconds > timepoint_seconds_t;
-
-typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds> sys_seconds;
-
-class MapState
+class ConfigService
 {
   public:
   
@@ -35,40 +26,32 @@ class MapState
     std::string defaultScene;
     std::string sceneResourcePath;
     std::string ephemeridesPath;
-    
-    Astronomy AstronomyService;
+    int fpsLimit;
     
     // Constructor
-    MapState();
-    ~MapState();
+    ConfigService();
+    ~ConfigService();
     
-    // Control the flow of time
-    void RunTime();
-    void PauseTime();
-    void ResetTime();
-    void GoToTime(std::tm& localTime);
-    void GoToTimeRelative(fractionalDays offset);
-    void GoToTimeRelative(double offsetInDays);
-    void SetTimeMultiplier(double timeMultiplier);
-    double GetTimeMultiplier();
+    // // Control the flow of time
+    // void RunTime();
+    // void PauseTime();
+    // void ResetTime();
+    // void GoToTime(std::tm& localTime);
+    // void GoToTimeRelative(fractionalDays offset);
+    // void GoToTimeRelative(double offsetInDays);
+    // void SetTimeMultiplier(double timeMultiplier);
+    // double GetTimeMultiplier();
     
-    // Time utility functions
-    timepoint_t GetMapTime();
-    double GetTimeAsJulianDate();
-    double GetMapTimeAsJulianDate();
-    std::tm GetMapTimeAsLocaltime();
-    std::tm GetLocaltime();
-    double GetJulianDateFromLocaltime(std::tm&);
-    std::tm GetLocaltimeFromJulianDate(double);
+    // // Time utility functions
+    // timepoint_t GetMapTime();
+    // double GetTimeAsJulianDate();
+    // double GetMapTimeAsJulianDate();
+    // std::tm GetMapTimeAsLocaltime();
+    // std::tm GetLocaltime();
+    // double GetJulianDateFromLocaltime(std::tm&);
+    // std::tm GetLocaltimeFromJulianDate(double);
     
-    // Light angle utilities
-    float GetAngleDistInDegFromHomeTangent(double latDeg, double lonDeg);
-    float GetLightBoost(double sunLatDeg, double sunLonDeg);
-    
-    // Map sleep property
-    void SetSleep(bool value);
-    bool GetSleep();
-    
+
     // Resource path utils
     std::string GetResourcePath(std::string resourceName);
     
@@ -117,13 +100,6 @@ class MapState
     bool readConfig();
     void writeConfig();
     nlohmann::json _config;
-    
-    // Internal time state vars
-    timepoint_t _referencePoint;
-    fractionalDays _mapTimeOffset;
-    bool _isSleeping;
-    double _timeMultiplier;
-    bool _timePaused;
     bool _settingsReadOK;
 };
 

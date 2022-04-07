@@ -9,6 +9,6 @@ uniform mat4 uCameraFromPixelTransform;
 void main(void)
 {
   vColor = aColor;
-  gl_PointSize = aPointSize;
-  gl_Position = uCameraFromPixelTransform * aVertex;
+  gl_PointSize = ceil(aPointSize);
+  gl_Position = uCameraFromPixelTransform * floor(aVertex);
 }

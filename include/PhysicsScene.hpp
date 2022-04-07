@@ -6,7 +6,7 @@
 class PhysicsScene : public Scene
 {
  public:
-    PhysicsScene(MapState& map);
+    PhysicsScene(ConfigService& map);
     ~PhysicsScene();
     
     const char* SceneName() override;
@@ -20,5 +20,6 @@ private:
 
 
     std::vector<PhysicsPoint> points;
+    int updateCounter;
 };
 

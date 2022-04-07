@@ -111,6 +111,9 @@
         "*.inc": "cpp",
         "simd": "cpp",
         "hash_map": "cpp",
-        "hash_set": "cpp"
+        "hash_set": "cpp",
+        "version": "cpp",
+        "*.def": "cpp",
+        "*.gen": "cpp"
     }
 }

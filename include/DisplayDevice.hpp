@@ -1,7 +1,8 @@
 #pragma once
 
 #include <memory>
-#include "MapState.hpp"
+#include "ConfigService.hpp"
+#include "InputButton.hpp"
 
 // Display device is an abstraction that allows our framebuffer to be drawn to
 // an array of LED panels, a window on a PC, or any other image output
@@ -10,7 +11,7 @@ class DisplayDevice final
 {
     public:
         // Display devices must be constructed in the main thread
-        DisplayDevice(MapState& map);
+        DisplayDevice(ConfigService& map);
 
         ~DisplayDevice();
 
@@ -21,15 +22,10 @@ class DisplayDevice final
         // Clear the display and if possible, enter a low power state
         void Clear();
 
-        // ProcessEvents must be called from the main thread and
-        // if it returns false, that means the window has closed
-        // and the program should exit
-        bool ProcessEvents();
-
-        // Returns true if the display has an action queued, false otherwise
-        // An "action" is just a simple momentary signal that cycles through
-        // system functions
-        bool Action();
+        // Gets an input button, if any, provided by the display
+        // Pointer should be good for the display's lifetime
+        // Returns nullptr if there is no button
+        InputButton* GetInputButton();
 
     private:
         struct Impl;

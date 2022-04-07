@@ -20,12 +20,12 @@ using rgb_matrix::StreamReader;
 
 struct DisplayDevice::Impl
 {
-    MapState& map;
+    ConfigService& map;
     RGBMatrix* matrix;
     FrameCanvas* offscreen_canvas;
     ImageRGBA CPUTextureCache;
 
-    Impl(MapState& map) : map(map), CPUTextureCache(map.width, map.height)
+    Impl(ConfigService& map) : map(map), CPUTextureCache(map.width, map.height)
     {
         // Mantle map parameters
         int cols = 64;
@@ -86,19 +86,13 @@ struct DisplayDevice::Impl
     }
 };
 
-DisplayDevice::DisplayDevice(MapState& map)
+DisplayDevice::DisplayDevice(ConfigService& map)
 {
     pImpl_ = std::make_unique<Impl>(map);
 }
 
 DisplayDevice::~DisplayDevice()
 {
-}
-
-bool DisplayDevice::ProcessEvents()
-{
-    // The LED panel does not have events!
-    return true;
 }
 
 void DisplayDevice::Update()
@@ -111,9 +105,9 @@ void DisplayDevice::Clear()
     pImpl_->matrix->Clear();
 }
 
-bool DisplayDevice::Action()
+InputButton* DisplayDevice::GetInputButton()
 {
-    return false;
+    return nullptr;
 }
 
 #else
@@ -145,9 +139,9 @@ static const EGLint context_attributes[] =
 };
 
 // This display device opens an OS native window and renders a preview to the display
-struct DisplayDevice::Impl 
+struct DisplayDevice::Impl : public InputButton
 {
-    MapState& map;
+    ConfigService& map;
     OSWindow* window;
     bool running = true;
     EGLSurface surface;
@@ -161,7 +155,7 @@ struct DisplayDevice::Impl
     GLint coordinateAttrib;
     std::vector<float> mesh;
 
-    Impl(MapState& map) : map(map), CPUTextureCache(map.width, map.height)
+    Impl(ConfigService& map) : map(map), CPUTextureCache(map.width, map.height)
     {
         // Create the OS window
         window = OSWindow::New();
@@ -290,75 +284,63 @@ struct DisplayDevice::Impl
         eglSwapBuffers(display, surface);
     }
 
-    bool processWindowEvents()
-    {
-        if (running)
-        {
-            Event event;
-            while (window->popEvent(&event))
-            {
-                if (event.Type == Event::EVENT_CLOSED)
-                {
-                    running = false;
-                    break;
-                }
-
-                if (event.Type == Event::EVENT_KEY_PRESSED)
-                {
-                    switch (event.Key.Code)
-                    {
-                        case KEY_ESCAPE:
-                            running = false;
-                            break;
-                        case KEY_SPACE:
-                            actions.push_back(true);
-                            break;
-                        default:
-                            break;
-                    }
-                    //window->resize(width, height);
-                    //window->setPosition(x, y);
-                }
-            }
-            
-            window->messageLoop();
-        }
-
-        return running;
-    }
-
-    std::vector<bool> actions;
-    bool action()
-    {
-        if (actions.size() > 0)
-        {
-            actions.pop_back();
-            return true;
-        }
-        return false;
-    }
-
     ~Impl()
     {
         running = false;
         if (window != nullptr && window->valid())
             window->destroy();
     }
+
+    virtual ButtonAction PopAction() override
+    {
+        if (running)
+        {
+            Event event;
+            if (window->popEvent(&event))
+            {
+                if (event.Type == Event::EVENT_CLOSED)
+                {
+                    return ButtonAction::Exit;
+                }
+                
+                if (event.Type == Event::EVENT_KEY_PRESSED)
+                {
+                    switch (event.Key.Code)
+                    {
+                        case KEY_ESCAPE:
+                            return ButtonAction::Exit;
+                        case KEY_SPACE:
+                            return ButtonAction::Tap;
+                        default:
+                            return ButtonAction::Unsupported;
+                    }
+                }
+
+                return ButtonAction::Unsupported;
+            }
+            else
+            {
+                window->messageLoop();
+            }
+        }
+        return ButtonAction::None;
+    }
 };
 
-DisplayDevice::DisplayDevice(MapState& map) 
+
+
+DisplayDevice::DisplayDevice(ConfigService& map) 
 {
     pImpl_ = std::make_unique<Impl>(map);
 }
 
 DisplayDevice::~DisplayDevice() 
 {
-
 }
 
-bool DisplayDevice::ProcessEvents()
+InputButton* DisplayDevice::GetInputButton()
 {
-    return pImpl_->processWindowEvents();
+    return pImpl_.get();
 }
 
 void DisplayDevice::Update() 
@@ -369,12 +351,6 @@ void DisplayDevice::Update()
 void DisplayDevice::Clear() 
 {
     // no such thing
-}
-
-// Returns true if the display has an action queued, false otherwise
-bool DisplayDevice::Action()
-{
-    return pImpl_->action();
 }
 
 #endif

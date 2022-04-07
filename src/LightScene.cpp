@@ -8,16 +8,17 @@
 #include <chrono>
 #include <ctime>
 
-LightScene::LightScene(MapState& map) : 
-  Scene(map, SceneType::Base, SceneLifetime::Manual),
-  projection(map),
+LightScene::LightScene(ConfigService& config, AstronomyService& astro) : 
+  Scene(config, SceneType::Base, SceneLifetime::Manual),
+  projection(config),
   fullscreen_rect_vertex_buffer_data
   { 
-    0.0f, (float)map.height, 0.0f,
+    0.0f, (float)config.height, 0.0f,
     0.0f,  0.0f, 0.0f,
-    (float)map.width, (float)map.height, 0.0f,
-    (float)map.width,  0.0f, 0.0f
-  }
+    (float)config.width, (float)config.height, 0.0f,
+    (float)config.width,  0.0f, 0.0f
+  },
+  astro(astro)
 {
   sunCurrentLat = 0;
   sunCurrentLon = 0;
@@ -25,7 +26,7 @@ LightScene::LightScene(MapState& map) :
   sunTargetLon = 0;
   sunPropAngleCurrent = 0;
   overrideSunLocation = false;
-  sunPropAngleTarget = map.sunPropigationDeg;
+  sunPropAngleTarget = config.sunPropigationDeg;
 }
 
 LightScene::~LightScene()
@@ -34,7 +35,7 @@ LightScene::~LightScene()
 
 const char* LightScene::SceneName()
 {
-  return "Sunlight map";
+  return "Sunlight config";
 }
 
 const char* LightScene::SceneResourceDir()
@@ -56,7 +57,7 @@ void LightScene::initGLOverride()
   
   // Load and compile the shaders into a glsl program
   program = loadGraphicsProgram(vertShader, fragShader);
-  program.SetCameraFromPixelTransform(map.width,map.height);
+  program.SetCameraFromPixelTransform(config.width,config.height);
 }
 
 void LightScene::drawMapRect()
@@ -197,7 +198,7 @@ bool LightScene::Query(std::string query, std::string& response)
         }
       }
       
-      map.GoToTimeRelative(delta * dir);
+      TimeService::SetSceneTimeRelative(delta * dir);
 
       std::stringstream output;
       output << "Time adjustment adjusted by " << delta * dir << " days" << std::endl;
@@ -217,7 +218,7 @@ bool LightScene::Query(std::string query, std::string& response)
      
       timeMultiplier = std::stod(match[1]);
       
-      map.SetTimeMultiplier(timeMultiplier);
+      TimeService::SetSceneTimeMultiplier(timeMultiplier);
       
       std::stringstream output;
       output << "Speed multiplier set to " << timeMultiplier << " days" << std::endl;
@@ -230,28 +231,28 @@ bool LightScene::Query(std::string query, std::string& response)
   // Use this regex for day / night requests
   {
     std::smatch match; 
-    std::regex deltaTimeRegex(R"(show\s+(day|night|lightmap|light)(?:\s+map)?)", std::regex_constants::icase);
+    std::regex deltaTimeRegex(R"(show\s+(day|night|lightmap|light)(?:\s+config)?)", std::regex_constants::icase);
     if (std::regex_match(query, match, deltaTimeRegex))
     {
       if (match[1].str()[0] == 'd')
       {
         sunPropAngleTarget = 180;
         std::stringstream output;
-        output << "Showing day map" << std::endl;
+        output << "Showing day config" << std::endl;
         response = output.str();
       }
       else if (match[1].str()[0] == 'n')
       {
         sunPropAngleTarget = 0;
         std::stringstream output;
-        output << "Showing night map" << std::endl;
+        output << "Showing night config" << std::endl;
         response = output.str();
       }
       else if (match[1].str()[0] == 'l')
       {
-        sunPropAngleTarget = map.sunPropigationDeg;
+        sunPropAngleTarget = config.sunPropigationDeg;
         std::stringstream output;
-        output << "Showing light map" << std::endl;
+        output << "Showing light config" << std::endl;
         response = output.str();
       }
     
@@ -285,7 +286,7 @@ bool LightScene::Query(std::string query, std::string& response)
 void LightScene::resetOverride(bool animate)
 {
   overrideSunLocation = false;
-  sunPropAngleTarget = map.sunPropigationDeg;
+  sunPropAngleTarget = config.sunPropigationDeg;
   Update();
   
   // If we want to skip animations, force things instantly into the right place
@@ -302,10 +303,10 @@ void LightScene::updateOverride()
   // Update the sun's location
   if (!overrideSunLocation)
   {
-    map.AstronomyService.GetSolarPoint(map.GetMapTimeAsJulianDate(), sunTargetLat, sunTargetLon);
+    astro.GetSolarPoint(TimeService::GetSceneTimeAsJulianDate(), sunTargetLat, sunTargetLon);
   }
   
-  moveTowardsAngleDeg2D(sunCurrentLat, sunCurrentLon, sunTargetLat, sunTargetLon, 0.5 * map.GetTimeMultiplier());
+  moveTowardsAngleDeg2D(sunCurrentLat, sunCurrentLon, sunTargetLat, sunTargetLon, 0.5 * TimeService::GetSceneTimeMultiplier());
   
   moveTowards(sunPropAngleCurrent, sunPropAngleTarget, 0.5f);
 }
@@ -329,13 +330,13 @@ void LightScene::drawOverride()
   program.SetUniform("uLonLatLut", 2);
   program.SetUniform("uSunPropigationRad", sunPropAngleCurrent * (float)(M_PI / 180.0));
   
-  // Tell the frag shader the size of the map in pixels
-  program.SetUniform("uScale", map.width, map.height);
+  // Tell the frag shader the size of the config in pixels
+  program.SetUniform("uScale", config.width, config.height);
   
   {
     double lat, lon;
-    map.AstronomyService.GetSolarPoint(map.GetTimeAsJulianDate(), lat, lon);
-    program.SetUniform("uLightBoost", map.GetLightBoost(lat, lon));
+    astro.GetSolarPoint(TimeService::GetSceneTimeAsJulianDate(), lat, lon);
+    program.SetUniform("uLightBoost", astro.GetLightBoost(lat, lon));
   }
   
   
@@ -347,9 +348,9 @@ void LightScene::drawOverride()
   
   // Do the same for the moon
   double lat, lon;
-  map.AstronomyService.GetLunarPoint(map.GetMapTimeAsJulianDate(), lat, lon);
+  astro.GetLunarPoint(TimeService::GetSceneTimeAsJulianDate(), lat, lon);
   program.SetUniform("uMoonLonLat", (float)(lon * (M_PI / 180.0)), (float)(lat * (M_PI / 180.0)));
   
-  // Draw a full map-sized rectagle using the current shader
+  // Draw a full config-sized rectagle using the current shader
 	drawMapRect();
 }

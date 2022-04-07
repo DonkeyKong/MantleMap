@@ -7,5 +7,5 @@ uniform mat4 uCameraFromPixelTransform;
 void main(void)
 {
   vTexCoord = aTexCoord;
-  gl_Position = uCameraFromPixelTransform * aVertex;
+  gl_Position = uCameraFromPixelTransform * floor(aVertex);
 }

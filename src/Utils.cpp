@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <ctype.h>
 #include <stdlib.h>
+#include <math.h>
 
 bool iequals(const std::string& a, const std::string& b)
 {
@@ -12,6 +13,19 @@ bool iequals(const std::string& a, const std::string& b)
                       [](char a, char b) {
                           return tolower(a) == tolower(b);
                       });
+}
+
+void normalizeAngleDegrees(double& angle)
+{
+  while (angle < -180.0)
+    angle += 360.0;
+  while (angle > 180.0)
+    angle -= 360.0;
+}
+
+double deg2rad(double deg)
+{
+  return deg * (M_PI / 180.0);
 }
 
 // Get a uniform random number [min,max]

@@ -4,12 +4,13 @@
 #include "PolyLine.hpp"
 #include "TextLabel.hpp"
 #include "Scene.hpp"
-#include "MapState.hpp"
+#include "ConfigService.hpp"
+#include "AstronomyService.hpp"
 
 class SolarScene : public Scene
 {
  public:
-    SolarScene(MapState& map);
+    SolarScene(ConfigService& map, AstronomyService& astro);
     ~SolarScene();
     
     const char* SceneName() override;
@@ -20,6 +21,7 @@ protected:
     void drawOverride() override;
     
 private:
+    AstronomyService& _astro;
     Color _moonColorDay;
     Color _moonColorNight;
     Color _sunColorDay;

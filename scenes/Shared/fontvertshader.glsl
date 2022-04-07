@@ -8,5 +8,5 @@ uniform mat4 uCameraFromPixelTransform;
 void main(void)
 {
   vTexCoord = aTexCoord;
-  gl_Position = uCameraFromPixelTransform * (aVertex * vec4(uFontSizePx.x, uFontSizePx.y, 1,1) + vec4(uLocation.x, uLocation.y, 0, 0));
+  gl_Position = uCameraFromPixelTransform * (aVertex * vec4(uFontSizePx.x, uFontSizePx.y, 1,1) + vec4(floor(uLocation.x), floor(uLocation.y), 0, 0));
 }

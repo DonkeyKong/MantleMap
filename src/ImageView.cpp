@@ -5,7 +5,7 @@ GfxProgram ImageView::_program;
 GLint ImageView::_vertexAttrib;
 GLint ImageView::_textureAttrib;
 
-ImageView::ImageView(MapState& map) : SceneElement(map)
+ImageView::ImageView(ConfigService& map) : SceneElement(map)
 {    
   texture = 0;
   dirty = false;

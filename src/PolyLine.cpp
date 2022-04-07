@@ -10,7 +10,7 @@ std::string PolyLine::_fragShaderName = "flatfragshader.glsl";
 GLint PolyLine::_vertexAttrib;
 GLint PolyLine::_colorAttrib;
 
-PolyLine::PolyLine(MapState& map) : SceneElement(map)
+PolyLine::PolyLine(ConfigService& map) : SceneElement(map)
 {    
     _dirty = true;
     _halfWidth = 0.5f;

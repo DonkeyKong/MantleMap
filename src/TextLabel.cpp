@@ -11,7 +11,7 @@ GLuint TextLabel::_fontTextureBigTall = 0;
 GLint TextLabel::_vertexAttrib;
 GLint TextLabel::_coordinateAttrib;
 
-TextLabel::TextLabel(MapState& map) : SceneElement(map)
+TextLabel::TextLabel(ConfigService& map) : SceneElement(map)
 {
   _scale = 1.0f;
   _alignment = HAlign::Left;

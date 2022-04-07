@@ -43,7 +43,7 @@ set(PNG_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/deps/libpng
 
 add_executable( ${PROJECT_NAME} 
                     src/Attributes.cpp
-                    src/Astronomy.cpp
+                    src/AstronomyService.cpp
                     src/CmdDebugScene.cpp
                     src/ConfigCodeScene.cpp
                     src/DebugTransformScene.cpp
@@ -53,8 +53,8 @@ add_executable( ${PROJECT_NAME}
                     src/ImageView.cpp
                     src/LightScene.cpp
                     src/LoadShaders.cpp
-                    src/mantlemap.cpp
-                    src/MapState.cpp
+                    src/main.cpp
+                    src/ConfigService.cpp
                     src/MapTimeScene.cpp
                     src/NaturalEarth.cpp
                     src/PhysicsScene.cpp
@@ -63,7 +63,8 @@ add_executable( ${PROJECT_NAME}
                     src/SceneElement.cpp
                     src/SolarScene.cpp
                     src/TextLabel.cpp
-                    src/UsbButton.cpp
+                    src/TimeService.cpp
+                    src/InputButton.cpp
                     src/Utils.cpp
                     src/WeatherScene.cpp
                     deps/QR-Code-generator/cpp/qrcodegen.cpp )

@@ -7,7 +7,7 @@
 //
 
 #include "NaturalEarth.hpp"
-#include "MapState.hpp"
+#include "ConfigService.hpp"
 
 #include <math.h>
 
@@ -29,7 +29,7 @@ double NaturalEarth::C4 = 11 * B4;
 double NaturalEarth::EPS = 1e-11;
 double NaturalEarth::MAX_Y = 0.8707 * 0.52 * M_PI;
 
-NaturalEarth::NaturalEarth(MapState& map) : _map(map)
+NaturalEarth::NaturalEarth(ConfigService& map) : _map(map)
 {
   
 }

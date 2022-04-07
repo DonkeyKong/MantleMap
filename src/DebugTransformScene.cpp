@@ -1,6 +1,6 @@
 #include "DebugTransformScene.hpp"
 
-DebugTransformScene::DebugTransformScene(MapState& map) : Scene(map, SceneType::Base, SceneLifetime::Manual),
+DebugTransformScene::DebugTransformScene(ConfigService& map) : Scene(map, SceneType::Base, SceneLifetime::Manual),
     _label1(map),
     _label2(map),
     _label3(map),
@@ -67,7 +67,7 @@ void DebugTransformScene::initGLOverride()
 
   // Load and compile the shaders into a glsl program
   program = loadGraphicsProgram(vertShader, fragShader);
-  program.SetCameraFromPixelTransform(map.width,map.height);
+  program.SetCameraFromPixelTransform(config.width,config.height);
 }
 
 void DebugTransformScene::drawMapRect()
@@ -101,7 +101,7 @@ void DebugTransformScene::drawOverride()
   program.SetUniform("uLonLatLut", 0);
   
   // Tell the frag shader the size of the map in pixels
-  program.SetUniform("uScale", map.width, map.height);
+  program.SetUniform("uScale", config.width, config.height);
   
   // Draw a full map-sized rectagle using the current shader
 	drawMapRect();

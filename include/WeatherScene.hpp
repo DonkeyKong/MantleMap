@@ -3,7 +3,7 @@
 
 #include "TextLabel.hpp"
 #include "Scene.hpp"
-#include "MapState.hpp"
+#include "ConfigService.hpp"
 
 #include <mutex>
 #include <thread>
@@ -12,7 +12,7 @@
 class WeatherScene : public Scene
 {
  public:
-    WeatherScene(MapState& map);
+    WeatherScene(ConfigService& map);
     ~WeatherScene();
     
     const char* SceneName() override;
@@ -22,7 +22,6 @@ protected:
     void updateOverride() override;
     
 private:
-    
     std::string _noaaTemp;
     bool _exitTempUpdateThread;
     std::mutex _updateThreadMutex;

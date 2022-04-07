@@ -1,6 +1,6 @@
 #include "SceneElement.hpp"
 
-SceneElement::SceneElement(MapState& map) : map(map)
+SceneElement::SceneElement(ConfigService& map) : map(map)
 {
     // Nothing to do
 }

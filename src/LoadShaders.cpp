@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <assert.h>
+#include <math.h>
 
 #include "GLError.hpp"
 
@@ -241,8 +242,8 @@ void GfxProgram::SetCameraFromPixelTransform(float mapWidth, float mapHeight, fl
   // But our app acts like everything is in pixel space on the map
   float sX = (scale / mapWidth) * 2.0f;
   float sY = -(scale / mapHeight) * 2.0f;
-  float tX = (2.0 / mapWidth) * x - 1.0f;
-  float tY = -(2.0 / mapHeight) * y + 1.0f;
+  float tX = (2.0 / mapWidth) * floor(x) - 1.0f;
+  float tY = -(2.0 / mapHeight) * floor(y) + 1.0f;
 
   // float xform[] = {   sX,     0.0f,   0.0f,   tX,
   //                     0.0f,   sY,     0.0f,   tY,

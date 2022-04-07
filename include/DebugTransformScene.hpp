@@ -6,7 +6,7 @@
 class DebugTransformScene : public Scene
 {
  public:
-    DebugTransformScene(MapState& map);
+    DebugTransformScene(ConfigService& map);
     ~DebugTransformScene();
     
     const char* SceneName() override;

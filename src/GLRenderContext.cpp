@@ -32,7 +32,7 @@ static const EGLint context_attributes[] =
     EGL_NONE
 };
 
-GLRenderContext::GLRenderContext(MapState& map) : _map(map)
+GLRenderContext::GLRenderContext(ConfigService& map) : _map(map)
 {
   // Init the OpenGL context for this drawing
   initGL();
@@ -119,8 +119,8 @@ void GLRenderContext::initGL()
 
 void GLRenderContext::BeginDraw()
 {
-  // Sometimes we have a context for the display
-  // make the render contenxt current here just in case
+  // Sometimes we have multiple contexts for other stuff
+  // Make the framebuffer render contenxt current here just in case
   eglMakeCurrent(GDisplay, GSurface, GSurface, GContext);
 
   // Set "RenderedTexture" as color attachement #0

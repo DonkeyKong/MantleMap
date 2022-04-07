@@ -5,7 +5,7 @@
 #include <ctime>
 
 
-MapTimeScene::MapTimeScene(MapState& map) : Scene(map, SceneType::Overlay, SceneLifetime::Manual),
+MapTimeScene::MapTimeScene(ConfigService& map) : Scene(map, SceneType::Overlay, SceneLifetime::Manual),
     _monthLabel(map),
     _dayLabel(map),
     _yearLabel(map),
@@ -33,7 +33,7 @@ const char* MapTimeScene::SceneResourceDir()
 
 void MapTimeScene::updateOverride()
 {
-  auto nowLocal = map.GetMapTimeAsLocaltime();
+  auto nowLocal = TimeService::GetSceneTimeAsLocaltime();
   char formatStr[256];
   
   if (BaseSceneName == "Solar")
@@ -64,8 +64,8 @@ void MapTimeScene::updateOverride()
     std::strftime(formatStr, 255, "%H:%M", &nowLocal );
     _timeLabel.SetText(formatStr);
     _timeLabel.SetFontStyle(FontStyle::Regular);
-    _timeLabel.SetColor(0.25, 0.25, 0.25, 1.0);
-    _timeLabel.SetPosition(192, 90);
+    _timeLabel.SetColor(0.5,0.5,0.5f,1.0f);
+    _timeLabel.SetPosition(188, 86);
     _timeLabel.SetAlignment(HAlign::Right);
     
     // Month Label
@@ -74,23 +74,23 @@ void MapTimeScene::updateOverride()
       std::strftime(formatStr, 255, "%b", &nowLocal );
     _monthLabel.SetText(formatStr);
     _monthLabel.SetFontStyle(FontStyle::Narrow);
-    _monthLabel.SetColor(0.25, 0.25, 0.25, 1.0);
-    _monthLabel.SetPosition(192, 0);
+    _monthLabel.SetColor(0.5,0.5,0.5f,1.0f);
+    _monthLabel.SetPosition(188, 4);
     _monthLabel.SetAlignment(HAlign::Right);
     
     // Day label
     std::strftime(formatStr, 255, "%d", &nowLocal );
     _dayLabel.SetText(formatStr);
-    _dayLabel.SetColor(0.25, 0.25, 0.25, 1.0);
-    _dayLabel.SetPosition(192, 6);
+    _dayLabel.SetColor(0.5,0.5,0.5f,1.0f);
+    _dayLabel.SetPosition(188, 10);
     _dayLabel.SetAlignment(HAlign::Right);
 
     // Year Label
     std::strftime(formatStr, 255, "%Y", &nowLocal );
     _yearLabel.SetText(formatStr);
     _yearLabel.SetFontStyle(FontStyle::Narrow);
-    _yearLabel.SetColor(0.25, 0.25, 0.25, 1.0);
-    _yearLabel.SetPosition(192, 12);
+    _yearLabel.SetColor(0.5,0.5,0.5f,1.0f);
+    _yearLabel.SetPosition(188, 16);
     _yearLabel.SetAlignment(HAlign::Right);
   }
 }

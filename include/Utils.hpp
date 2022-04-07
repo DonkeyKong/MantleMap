@@ -5,6 +5,12 @@
 
 bool iequals(const std::string& a, const std::string& b);
 
+double deg2rad(double deg);
+
+// Do an in-place normalization of an angle in degrees to
+// [-180, 180]
+void normalizeAngleDegrees(double& angle);
+
 // Get a uniform random number [min,max]
 int Random(int min, int max);
 

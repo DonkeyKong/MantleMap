@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MapState.hpp"
+#include "ConfigService.hpp"
 
 class SceneElement
 {
@@ -8,8 +8,8 @@ class SceneElement
     virtual ~SceneElement();
     virtual void Draw() final;
 protected:
-    SceneElement(MapState& map);
+    SceneElement(ConfigService& map);
     virtual void drawInternal() = 0;
     virtual void initGL() = 0;
-    MapState& map;
+    ConfigService& map;
 };

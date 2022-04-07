@@ -2,12 +2,12 @@
 
 #include "LoadShaders.hpp"
 #include "SceneElement.hpp"
-#include "MapState.hpp"
+#include "ConfigService.hpp"
 
 class ImageView : public SceneElement
 {
  public:
-    ImageView(MapState&);
+    ImageView(ConfigService&);
     virtual ~ImageView();
     void SetImage(ImageRGBA image);
     void SetPosition(float x, float y);

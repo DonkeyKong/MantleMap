@@ -1,5 +1,7 @@
 #include "Utils.hpp"
-#include "MapState.hpp"
+#include "ConfigService.hpp"
+#include "TimeService.hpp"
+#include "AstronomyService.hpp"
 #include "LoadShaders.hpp"
 #include "GLRenderContext.hpp"
 #include "Scene.hpp"
@@ -12,7 +14,7 @@
 #include "WeatherScene.hpp"
 #include "TextLabel.hpp"
 #include "DisplayDevice.hpp"
-#include "UsbButton.hpp"
+#include "InputButton.hpp"
 #include "PhysicsScene.hpp"
 
 #include <unistd.h>
@@ -37,7 +39,6 @@ static void InterruptHandler(int signo)
 
 std::vector<Scene*> baseScenes;
 std::vector<Scene*> overlayScenes;
-CmdDebugScene* cmdDebugScenePtr;
 
 static void addScene(Scene* scene)
 {
@@ -102,14 +103,17 @@ static void swapBaseScene(std::string sceneName)
   }
 }
 
-static void executeCommand(const char* src, const char* cmd, MapState& mapState)
+static CmdDebugScene* cmdDebugScenePtr = nullptr;
+static bool sleeping = false;
+static void executeCommand(const char* src, const char* cmd, ConfigService& configService)
 {
     std::string command(cmd);    
     std::string source(src);
     
-    cmdDebugScenePtr->ShowCmd(command);
-    
-    std::cout << "[" << source << "]: ";
+    if (cmdDebugScenePtr != nullptr)
+    {
+      cmdDebugScenePtr->ShowCmd(command);
+    }
     
     if (command == "exit")
     {
@@ -122,15 +126,15 @@ static void executeCommand(const char* src, const char* cmd, MapState& mapState)
     }
     else if (command == "sleep")
     {
-      mapState.SetSleep(true);
+      sleeping = true;
     }
     else if (command == "light adjust on")
     {
-      mapState.lightAdjustEnabled = true;
+      configService.lightAdjustEnabled = true;
     }
     else if (command == "light adjust off")
     {
-      mapState.lightAdjustEnabled = false;
+      configService.lightAdjustEnabled = false;
     }
     else if (command.rfind("base layer ", 0) == 0)
     {
@@ -143,8 +147,8 @@ static void executeCommand(const char* src, const char* cmd, MapState& mapState)
     }
     else if (command == "reset")
     {
-      mapState.SetSleep(false);
-      mapState.ResetTime();
+      sleeping = false;
+      TimeService::ResetSceneTime();
       for (Scene* scene : baseScenes) 
       {
           scene->Reset(true);
@@ -153,7 +157,7 @@ static void executeCommand(const char* src, const char* cmd, MapState& mapState)
       {
         scene->Reset(true);
       }
-      swapBaseScene(mapState.defaultScene);
+      swapBaseScene(configService.defaultScene);
     }
     else
     {
@@ -185,6 +189,8 @@ static void executeCommand(const char* src, const char* cmd, MapState& mapState)
         }
       }
       
+      std::cout << "[" << source << "]: ";
+
       if (handled)
         std::cout << result << std::endl;
       else
@@ -199,17 +205,20 @@ int main(int argc, char *argv[])
   signal(SIGINT, InterruptHandler);
   
   // Create the settings object used throughout the components
-  MapState mapState;
+  ConfigService configService;
+
+  // Init the astro / NOVAS lib
+  AstronomyService astronomyService(configService);
   
   // Create the scene library
-  DebugTransformScene debugScene(mapState);
-  LightScene lightScene(mapState);
-  MapTimeScene mapTimeScene(mapState);
-  WeatherScene weatherScene(mapState);
-  CmdDebugScene cmdDebugScene(mapState);
-  SolarScene solarScene(mapState);
-  ConfigCodeScene configScene(mapState);
-  PhysicsScene physicsScene(mapState);
+  DebugTransformScene debugScene(configService);
+  LightScene lightScene(configService, astronomyService);
+  MapTimeScene mapTimeScene(configService);
+  WeatherScene weatherScene(configService);
+  CmdDebugScene cmdDebugScene(configService);
+  SolarScene solarScene(configService, astronomyService);
+  ConfigCodeScene configScene(configService);
+  PhysicsScene physicsScene(configService);
   
   addScene(&debugScene);
   addScene(&solarScene);
@@ -221,62 +230,83 @@ int main(int argc, char *argv[])
   addScene(&physicsScene);
   cmdDebugScenePtr = &cmdDebugScene;
   
-  // By default, always show mapTime, weather, and cmdDebug
+  // Always show the following overlays
   mapTimeScene.Show();
   weatherScene.Show();
   cmdDebugScene.Show();
   
   // Bring up the default base scene
-  swapBaseScene(mapState.defaultScene);
+  swapBaseScene(configService.defaultScene);
   
   // Save the config after opening all the scenes
-  mapState.SaveConfig();
+  configService.SaveConfig();
 
   // Create our hardware accelerated renderer
-  GLRenderContext render(mapState);
+  GLRenderContext render(configService);
+
+  // We might have many input buttons, create a vector to store them
+  std::vector<InputButton*> inputButtons;
 
   // Create the output display device (LED panel, window, etc)
-  DisplayDevice display(mapState);
+  DisplayDevice display(configService);
+  if (display.GetInputButton() != nullptr)
+  {
+    inputButtons.push_back(display.GetInputButton());
+  }
 
   // Create the button we listen to for sleep commands
-  UsbButton button;
+  #ifdef LINUX_HID_CONTROLLER_SUPPORT
+  UseButton usbButton;
+  inputButtons.push_back(&usbButton);
+  #endif
+
+  int buttonAction = 0;
+  std::vector<std::string> buttonActions;
+
+  for (const auto& scene : baseScenes)
+  {
+    buttonActions.push_back(fmt::format("base layer {}", scene->SceneResourceDir()));
+  }
+  buttonActions.push_back("sleep");
+  buttonActions.push_back("reset");
 
   auto thisFrameComplete = std::chrono::high_resolution_clock::now();
   auto lastFrameComplete = std::chrono::high_resolution_clock::now();
-
-  // This is 1/60th of a second in nanoseconds
   auto expectedFrameTime = std::chrono::high_resolution_clock::duration(std::chrono::nanoseconds(16666667));
-
-  int buttonAction = 0;
-  std::vector<std::string> buttonActions 
-  {
-    "base layer ConfigCode",
-    "base layer Light",
-    "base layer Physics",
-    "sleep",
-    "reset",
-  };
 
   // Start the main render loop!
   while (!interrupt_received && !internal_exit) 
   {
-    // Handle display events
-    if (!display.ProcessEvents())
+    // Handle input events
+    for (auto button : inputButtons)
     {
-      internal_exit = true;
+      while(true)
+      {
+        auto action = button->PopAction();
+        if (action == ButtonAction::None)
+        {
+          break;
+        }
+        else if (action == ButtonAction::Tap)
+        {
+          executeCommand("Button", buttonActions[buttonAction].c_str(), configService);
+          buttonAction = (buttonAction + 1) % buttonActions.size();
+        }
+        else if (action == ButtonAction::Hold)
+        {
+          executeCommand("Button", "sleep", configService);
+        }
+        else if (action == ButtonAction::Exit)
+        {
+          internal_exit = true;
+        }
+      }
     }
-
-    // Handle button events
-    while (button.pressed() || display.Action())
-    {
-      executeCommand("Button", buttonActions[buttonAction].c_str(), mapState);
-      buttonAction = (buttonAction + 1) % buttonActions.size();
-    }
-
+    
     // TBD: handle REST events
     
     // Update/Draw the map
-    if (mapState.GetSleep())
+    if (sleeping)
     {
       display.Clear();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -322,7 +352,7 @@ int main(int argc, char *argv[])
     // //std::cout << "> " << std::flush; // This chatters in the logs
     // if (stdInFailCount < 20 && std::getline (std::cin, command))
     // {
-    //   executeCommand("StdIn", command.c_str(), mapState);
+    //   executeCommand("StdIn", command.c_str(), configService);
     // }
     // else
     // {

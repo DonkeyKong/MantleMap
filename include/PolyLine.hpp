@@ -6,13 +6,13 @@
 
 #include "LoadShaders.hpp"
 #include "SceneElement.hpp"
-#include "MapState.hpp"
+#include "ConfigService.hpp"
 #include "Attributes.hpp"
 
 class PolyLine : public SceneElement
 {
  public:
-    PolyLine(MapState&);
+    PolyLine(ConfigService&);
     virtual ~PolyLine();
 
     void SetPoints(const std::vector<Vertex>& points);
