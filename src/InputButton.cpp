@@ -122,7 +122,7 @@ UsbButton::~UsbButton()
     close(pImpl_->buttonFd);
 }
 
-bool UsbButton::PopAction()
+ButtonAction UsbButton::PopAction()
 {
     if (pImpl_->buttonFd != -1 && read_event(pImpl_->buttonFd, &pImpl_->event) == 0)
     {

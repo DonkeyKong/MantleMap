@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
 
   // Create the button we listen to for sleep commands
   #ifdef LINUX_HID_CONTROLLER_SUPPORT
-  UseButton usbButton;
+  UsbButton usbButton;
   inputButtons.push_back(&usbButton);
   #endif
 

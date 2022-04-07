@@ -184,13 +184,13 @@ std::tm TimeService::GetLocaltimeFromJulianDate(double julian)
 // (Generally 1/60 but can be configured)
 double TimeService::GetTargetFrameDelta()
 {
-    
+    return 0;
 }
 
 // Get the actual time, in seconds, that it took to render the last frame
 double TimeService::GetLastFrameDelta()
 {
-    
+    return 0;
 }
 
 // Record now as when the current frame finished rendering.
