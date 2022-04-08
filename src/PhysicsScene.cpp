@@ -130,7 +130,7 @@ void PhysicsScene::updateOverride()
         {(float)config.width / 2.0f, (float)config.height / 2.0f, 0.0f},
         {},
         0,
-        5.0,
+        15.0,
         {}
     };
 
