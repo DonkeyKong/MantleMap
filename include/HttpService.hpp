@@ -1,5 +1,9 @@
 #pragma once
 
+#include <ConfigService.hpp>
+
+#include <httplib.h>
+#include <vector>
 #include <mutex>
 #include <thread>
 #include <condition_variable>
@@ -8,24 +12,29 @@ enum class CommandType
 {
     None,
     TextCommand
-}
+};
 
 struct HttpCommand
 {
-    CommandType commandType;
-    std::string commandStr;
+    CommandType commandType {CommandType::None};
+    std::string commandStr {""};
 };
 
 class HttpService
 {
 public:
-    HttpService();
+    HttpService(ConfigService& config);
+    ~HttpService();
     bool ServerRunning();
     std::string ListeningInterface();
     HttpCommand PopCommand();
 private:
-    bool _exitThread;
-    std::mutex _updateThreadMutex;
-    std::condition_variable _exitThreadCondition;
-    std::shared_ptr<std::thread> _updateThread;
+    std::string listeningInterface;
+    ConfigService& config;
+    void setupCallbacks();
+    std::unique_ptr<httplib::Server> srv;
+    std::unique_ptr<std::thread> serverThread;
+    std::mutex queueMutex;
+    std::vector<HttpCommand> commandQueue;
+    std::unordered_map<std::string, std::string> web;
 };

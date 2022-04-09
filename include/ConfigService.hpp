@@ -32,26 +32,6 @@ class ConfigService
     ConfigService();
     ~ConfigService();
     
-    // // Control the flow of time
-    // void RunTime();
-    // void PauseTime();
-    // void ResetTime();
-    // void GoToTime(std::tm& localTime);
-    // void GoToTimeRelative(fractionalDays offset);
-    // void GoToTimeRelative(double offsetInDays);
-    // void SetTimeMultiplier(double timeMultiplier);
-    // double GetTimeMultiplier();
-    
-    // // Time utility functions
-    // timepoint_t GetMapTime();
-    // double GetTimeAsJulianDate();
-    // double GetMapTimeAsJulianDate();
-    // std::tm GetMapTimeAsLocaltime();
-    // std::tm GetLocaltime();
-    // double GetJulianDateFromLocaltime(std::tm&);
-    // std::tm GetLocaltimeFromJulianDate(double);
-    
-
     // Resource path utils
     std::string GetResourcePath(std::string resourceName);
     

@@ -49,6 +49,7 @@ add_executable( ${PROJECT_NAME}
                     src/DebugTransformScene.cpp
                     src/DisplayDevice.cpp
                     src/GLRenderContext.cpp
+                    src/HttpService.cpp
                     src/ImageRGBA.cpp
                     src/ImageView.cpp
                     src/LightScene.cpp

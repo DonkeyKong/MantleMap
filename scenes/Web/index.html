@@ -1,0 +1,15 @@
+<html>
+  <head>
+    <title>Command Interface</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  </head>
+  <body>
+    <iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
+    <form action="/system/command" method="post" target="dummyframe" id="commandForm">
+      <input type="hidden" name="commandType" value="TextCommand" />
+      <label for="commandStr">Command:</label>
+      <input type="text" id="commandStr" name="commandStr" width="400"><br><br>
+      <input type="reset" value="Send" onclick="document.forms['commandForm'].submit();">
+    </form>
+  </body>
+</html>

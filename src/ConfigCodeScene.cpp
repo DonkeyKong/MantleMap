@@ -1,11 +1,12 @@
 #include "ConfigCodeScene.hpp"
 #include "LoadShaders.hpp"
 
+#include <fmt/format.h>
 #include <chrono>
 #include <ctime>
 
 
-ConfigCodeScene::ConfigCodeScene(ConfigService& config) : Scene(config, SceneType::Base, SceneLifetime::Manual),
+ConfigCodeScene::ConfigCodeScene(ConfigService& config, HttpService& http) : Scene(config, SceneType::Base, SceneLifetime::Manual),
     qrCode(config),
     scanToConfigureLabel(config),
     urlLabel(config)
@@ -15,7 +16,7 @@ ConfigCodeScene::ConfigCodeScene(ConfigService& config) : Scene(config, SceneTyp
   Elements.push_back(&qrCode);
 
   // Get the URL to show from the HttpService
-  std::string configURL = "http://192.168.7.133";
+  std::string configURL = fmt::format("http://{}", http.ListeningInterface());
 
   qrCode.SetImage(ImageRGBA::FromQrPayload(configURL));
   qrCode.SetScale(1.0f);
@@ -27,11 +28,13 @@ ConfigCodeScene::ConfigCodeScene(ConfigService& config) : Scene(config, SceneTyp
   scanToConfigureLabel.SetFontStyle(FontStyle::BigNarrow);
   scanToConfigureLabel.SetAlignment(HAlign::Center);
   scanToConfigureLabel.SetPosition(config.width / 2.0f, config.height / 2.0f - 32);
+  scanToConfigureLabel.SetColor(0.5, 0.5, 0.5, 1.0);
   
   urlLabel.SetText(configURL);
   urlLabel.SetFontStyle(FontStyle::Narrow);
   urlLabel.SetAlignment(HAlign::Center);
   urlLabel.SetPosition(config.width / 2.0f, config.height / 2.0f + 22);
+  urlLabel.SetColor(0.5, 0.5, 0.5, 1.0);
 }
 
 ConfigCodeScene::~ConfigCodeScene()

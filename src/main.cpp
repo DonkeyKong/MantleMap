@@ -1,6 +1,7 @@
 #include "Utils.hpp"
 #include "ConfigService.hpp"
 #include "TimeService.hpp"
+#include "HttpService.hpp"
 #include "AstronomyService.hpp"
 #include "LoadShaders.hpp"
 #include "GLRenderContext.hpp"
@@ -207,6 +208,9 @@ int main(int argc, char *argv[])
   // Create the settings object used throughout the components
   ConfigService configService;
 
+  // Add the HTTP service to serve web requests
+  HttpService httpService(configService);
+
   // Init the astro / NOVAS lib
   AstronomyService astronomyService(configService);
   
@@ -217,7 +221,7 @@ int main(int argc, char *argv[])
   WeatherScene weatherScene(configService);
   CmdDebugScene cmdDebugScene(configService);
   SolarScene solarScene(configService, astronomyService);
-  ConfigCodeScene configScene(configService);
+  ConfigCodeScene configScene(configService, httpService);
   PhysicsScene physicsScene(configService);
   
   addScene(&debugScene);
@@ -304,6 +308,18 @@ int main(int argc, char *argv[])
     }
     
     // TBD: handle REST events
+    while(true)
+    {
+      auto cmd = httpService.PopCommand();
+      if (cmd.commandType == CommandType::TextCommand)
+      {
+        executeCommand("HTTP", cmd.commandStr.c_str(), configService);
+      }
+      else
+      {
+        break;
+      }
+    }
     
     // Update/Draw the map
     if (sleeping)
