@@ -4,11 +4,11 @@
 
 #define M_HALFPI 1.57079632679f
 
-GfxProgram PolyLine::_program;
-std::string PolyLine::_vertShaderName = "flatvertshader.glsl"; 
-std::string PolyLine::_fragShaderName = "flatfragshader.glsl";
-GLint PolyLine::_vertexAttrib;
-GLint PolyLine::_colorAttrib;
+std::unique_ptr<GfxProgram> PolyLine::_program;
+// std::string PolyLine::_vertShaderName = "flatvertshader.glsl"; 
+// std::string PolyLine::_fragShaderName = "flatfragshader.glsl";
+// GLint PolyLine::_vertexAttrib;
+// GLint PolyLine::_colorAttrib;
 
 PolyLine::PolyLine(ConfigService& map) : SceneElement(map)
 {    
@@ -21,15 +21,13 @@ PolyLine::PolyLine(ConfigService& map) : SceneElement(map)
 
 void PolyLine::initGL()
 {  
-  if (!_program.isLoaded)
+  if (!_program)
   {
     // Load and compile the shaders into a glsl program
-    _program.LoadShaders(map.GetResourcePath(_vertShaderName).c_str(),
-                         map.GetResourcePath(_fragShaderName).c_str());
-                         
-    
-    _vertexAttrib = glGetAttribLocation(_program.GetId(), "aVertex");
-    _colorAttrib = glGetAttribLocation(_program.GetId(), "aColor");
+    _program = loadProgram( "vertshader.glsl", "fragshader.glsl", 
+                            {
+                                ShaderFeature::VertexColor
+                            });
   }
 }
 
@@ -140,15 +138,14 @@ void PolyLine::drawInternal()
   if (_mesh.size() >= 3)
   {
     // Select our shader program
-    glUseProgram(_program.GetId());
+    _program->Use();
   
-    // Setup the map transform
-    _program.SetCameraFromPixelTransform(map.width, map.height);
-    _program.SetUniform("uLocation", _locX, _locY);
-    _program.SetUniform("uColor", _color.r, _color.g, _color.b, _color.a);
+    // Set the position and color
+    _program->SetModelTransform(_locX, _locY, 1.0f);
+    _program->SetTint(_color);
     
     glVertexAttribPointer(
-                        _vertexAttrib,      // The attribute ID
+                        _program->Attrib("aPosition"),      // The attribute ID
                         3,                  // size
                         GL_FLOAT,           // type
                         GL_FALSE,           // normalized?
@@ -156,10 +153,10 @@ void PolyLine::drawInternal()
                         (float*)&_mesh[0]         // underlying data
                 );
 
-     glEnableVertexAttribArray ( _vertexAttrib );
+     glEnableVertexAttribArray ( _program->Attrib("aPosition") );
    
      glVertexAttribPointer(
-                      _colorAttrib, // The attribute ID
+                      _program->Attrib("aColor"), // The attribute ID
                       4,                  // size
                       GL_FLOAT,           // type
                       GL_FALSE,           // normalized?
@@ -167,7 +164,7 @@ void PolyLine::drawInternal()
                       ((float*)&_mesh[0]+3)      // underlying data
               );
             
-    glEnableVertexAttribArray(_colorAttrib);
+    glEnableVertexAttribArray(_program->Attrib("aColor"));
 
     // Draw the triangles!
     glDrawArrays(GL_TRIANGLE_STRIP, 0, _mesh.size());

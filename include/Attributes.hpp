@@ -69,6 +69,15 @@ struct Vec3
       z+=o.z
     };
   }
+  Vec3 operator-=(const Vec3& o)
+  {
+    return 
+    {
+      x-=o.x,
+      y-=o.y,
+      z-=o.z
+    };
+  }
   Vec3 operator*(const float& s) const
   {
     return 
@@ -93,6 +102,63 @@ struct Vec2
 {
   float x{0}; 
   float y{0};
+
+  float mag2()
+  {
+    return pow(x,2.0f) +  pow(y,2.0f);
+  }
+  float mag()
+  {
+    return sqrt(pow(x,2.0f) +  pow(y,2.0f));
+  }
+  Vec2 operator-(const Vec2& o) const
+  {
+    return 
+    {
+      x-o.x,
+      y-o.y
+    };
+  }
+  Vec2 operator+(const Vec2& o) const
+  {
+    return 
+    {
+      x+o.x,
+      y+o.y
+    };
+  }
+  Vec2 operator+=(const Vec2& o)
+  {
+    return 
+    {
+      x+=o.x,
+      y+=o.y
+    };
+  }
+  Vec2 operator-=(const Vec2& o)
+  {
+    return 
+    {
+      x-=o.x,
+      y-=o.y
+    };
+  }
+  Vec2 operator*(const float& s) const
+  {
+    return 
+    {
+      x*s,
+      y*s
+    };
+  }
+  Vec2 operator/(const float& s) const
+  {
+    return 
+    {
+      x/s,
+      y/s
+    };
+  }
 };
 
 typedef Vec3 Position;

@@ -1,7 +1,6 @@
 #ifndef TEXTLABEL_HPP
 #define TEXTLABEL_HPP
 
-#include "LoadShaders.hpp"
 #include "SceneElement.hpp"
 #include "ConfigService.hpp"
 #include "Attributes.hpp"
@@ -32,18 +31,14 @@ protected:
     void invalidateBuffers();
     float getFontTileWidth();
     float getFontTileHeight();
-    GLuint getFontTexture();
+    GfxTexture& getFontTexture();
     
 private:
     std::mutex _mutex;
-    static GfxProgram _program;
-    static GLuint _fontTextureLarge;
-    static GLuint _fontTextureSmall;
-    static GLuint _fontTextureBigTall;
-    static std::string _vertShaderName; 
-    static std::string _fragShaderName;
-    static GLint _vertexAttrib;
-    static GLint _coordinateAttrib;
+    static std::unique_ptr<GfxProgram> _program;
+    static std::unique_ptr<GfxTexture> _fontTextureLarge;
+    static std::unique_ptr<GfxTexture> _fontTextureSmall;
+    static std::unique_ptr<GfxTexture> _fontTextureBigTall;
     
     // Buffers containing render data
     bool _textDirty;

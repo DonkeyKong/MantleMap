@@ -76,23 +76,23 @@ void ImageRGBA::PadToPowerOfTwo()
     throw std::runtime_error("Image padding error!");
 }
 
-ImageRGBA ImageRGBA::FromPngFile(std::string imagePath)
+std::shared_ptr<ImageRGBA> ImageRGBA::FromPngFile(const std::string& imagePath)
 {
-    ImageRGBA image;
-    image.read_png_file(imagePath.c_str());
+    auto image = std::make_shared<ImageRGBA>();
+    image->read_png_file(imagePath.c_str());
     return image;
 }
 
-ImageRGBA ImageRGBA::FromQrPayload(std::string qrPayload)
+std::shared_ptr<ImageRGBA> ImageRGBA::FromQrPayload(const std::string& qrPayload)
 {
-    ImageRGBA image;
+    auto image = std::make_shared<ImageRGBA>();
     
     auto qr = qrcodegen::QrCode::encodeText(qrPayload.c_str(), qrcodegen::QrCode::Ecc::MEDIUM);
     const int quietZoneSize = 2;
-    image.width_ = qr.getSize() + quietZoneSize * 2;
-    image.height_ = qr.getSize() + quietZoneSize * 2;
-    image.data_.resize(image.width_ * image.height_ * 4);
-    auto dataPtr = image.data();
+    image->width_ = qr.getSize() + quietZoneSize * 2;
+    image->height_ = qr.getSize() + quietZoneSize * 2;
+    image->data_.resize(image->width_ * image->height_ * 4);
+    auto dataPtr = image->data();
 
     for (int y = -quietZoneSize; y < qr.getSize() + quietZoneSize; y++)
     {
@@ -199,22 +199,27 @@ uint8_t* ImageRGBA::data()
     return data_.data();
 }
 
-int ImageRGBA::width()
+const uint8_t* ImageRGBA::data() const
+{
+    return data_.data();
+}
+
+int ImageRGBA::width() const
 {
     return width_;
 }
 
-int ImageRGBA::height()
+int ImageRGBA::height() const
 {
     return height_;
 }
 
-int ImageRGBA::padW()
+int ImageRGBA::padW() const
 {
     return padW_;
 }
 
-int ImageRGBA::padH()
+int ImageRGBA::padH() const
 {
     return padH_;
 }

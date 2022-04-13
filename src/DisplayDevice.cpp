@@ -116,7 +116,9 @@ InputButton* DisplayDevice::GetInputButton()
 #include "GLES2/gl2.h"
 #include "EGL/eglext.h"
 
-#include "LoadShaders.hpp"
+#include "GfxProgram.hpp"
+#include "GfxTexture.hpp"
+#include "ImageRGBA.hpp"
 
 #include <util/OSWindow.h>
 #include <thread>
@@ -149,8 +151,8 @@ struct DisplayDevice::Impl : public InputButton
     EGLConfig config;
     EGLContext context;
     ImageRGBA CPUTextureCache;
-    GfxProgram program;
-    GLuint texture;
+    std::unique_ptr<GfxProgram> program;
+    std::unique_ptr<GfxTexture> texture;
     GLint vertexAttrib;
     GLint coordinateAttrib;
     std::vector<float> mesh;
@@ -194,15 +196,18 @@ struct DisplayDevice::Impl : public InputButton
         eglMakeCurrent(display, surface, surface, context);
 
         // Load and compile the image display shaders into a glsl program
-        program = LoadGraphicsProgram(map.GetResourcePath("ledmatrixvertshader.glsl"), 
-                                      map.GetResourcePath("ledmatrixfragshader.glsl"));
-        program.SetCameraFromPixelTransform(map.width,map.height);
-        vertexAttrib = glGetAttribLocation(program.GetId(), "aVertex");
-        coordinateAttrib = glGetAttribLocation(program.GetId(), "aTexCoord");
+        program = std::make_unique<GfxProgram>(
+            map, 
+            map.GetResourcePath("ledmatrixvertshader.glsl"), 
+            map.GetResourcePath("ledmatrixfragshader.glsl"),
+            std::vector<std::string>());
+        
+        vertexAttrib = program->Attrib("aVertex");
+        coordinateAttrib = program->Attrib("aTexCoord");
 
         // Create a texture for the display image
 
-        texture = LoadImageToTexture(CPUTextureCache);
+        texture = std::make_unique<GfxTexture>(CPUTextureCache);
 
         // Create the mesh for the image render
         //       X                  Y                   Z       U       V
@@ -223,7 +228,7 @@ struct DisplayDevice::Impl : public InputButton
         eglMakeCurrent(display, surface, surface, context);
 
         // Push the new render into the texture
-        LoadImageToTexture(CPUTextureCache, texture);
+        texture->LoadImageToTexture(CPUTextureCache);
 
         // Set the viewport
         float winRatio = (float)window->getWidth() /  (float)window->getHeight();
@@ -246,14 +251,14 @@ struct DisplayDevice::Impl : public InputButton
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Draw the image
-	    glUseProgram(program.GetId());
+        program->Use();
         glActiveTexture(GL_TEXTURE0);
 
         // Tell our shader which units to look for each texture on
-        program.SetUniform("uTexture", 0);
-        program.SetUniform("uLocation", 0.0f, 0.0f);
-        program.SetUniform("uColor", 1.0f, 1.0f, 1.0f, 1.0f);
-        program.SetUniform("uTextureSize", (float)map.width, (float)map.height);
+        program->SetUniform("uTexture", 0);
+        program->SetUniform("uLocation", 0.0f, 0.0f);
+        program->SetUniform("uColor", 1.0f, 1.0f, 1.0f, 1.0f);
+        program->SetUniform("uTextureSize", (float)map.width, (float)map.height);
 
         glVertexAttribPointer(
                       vertexAttrib,      // The attribute ID

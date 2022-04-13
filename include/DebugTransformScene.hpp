@@ -17,9 +17,7 @@ protected:
     void drawOverride() override;
     
 private:
-    GfxProgram program;
-    std::string vertShader = "vertshader.glsl"; 
-    std::string fragShader = "debugfragshader.glsl";
+    std::unique_ptr<GfxProgram> program;
     
     TextLabel _label1;
     TextLabel _label2;
@@ -33,6 +31,6 @@ private:
     // Helper function that draws a fullscreen rect, generally used to draw the map
     void drawMapRect();
     NaturalEarth projection;
-    GLuint LonLatLookupTexture;
-    GLfloat fullscreen_rect_vertex_buffer_data[12];
+    std::unique_ptr<GfxTexture> LonLatLookupTexture;
+    std::vector<float> mesh;
 };

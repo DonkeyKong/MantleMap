@@ -1,15 +1,17 @@
 #pragma once
 
-#include "LoadShaders.hpp"
+#include "GfxTexture.hpp"
+#include "GfxProgram.hpp"
+
 #include "NaturalEarth.hpp"
 #include "SceneElement.hpp"
 #include "ConfigService.hpp"
 #include "TimeService.hpp"
 
-#include "EGL/egl.h"
-#include "EGL/eglplatform.h"
+// #include "EGL/egl.h"
+// #include "EGL/eglplatform.h"
 #include "GLES2/gl2.h"
-#include "EGL/eglext.h"
+// #include "EGL/eglext.h"
 
 #include <chrono>
 #include <string>
@@ -24,7 +26,6 @@ enum class SceneLifetime
 enum class SceneType
 {
   Base,
-  Animator,
   Overlay
 };
 
@@ -83,10 +84,10 @@ class Scene
     virtual void resetOverride(bool animate);
 
     // Load an image using libpng and insert it straight into a texture
-    GLuint loadImageToTexture(std::string resourceName);
+    std::unique_ptr<GfxTexture> loadTexture(std::string resourceName);
     
     // Load a vert and frag shader and create a program with them
-    GfxProgram loadGraphicsProgram(std::string vertShaderName, std::string fragShaderName);
+    std::unique_ptr<GfxProgram> loadProgram(std::string vertShaderName, std::string fragShaderName, std::vector<std::string> features);
 
     std::vector<SceneElement*> Elements;
     ConfigService& config;

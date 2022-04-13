@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Scene.hpp"
-
 #include "TextLabel.hpp"
 
 class MapTimeScene : public Scene

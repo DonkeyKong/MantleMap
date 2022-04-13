@@ -1,5 +1,5 @@
 #include "PhysicsScene.hpp"
-#include "LoadShaders.hpp"
+#include "GfxProgram.hpp"
 #include "Utils.hpp"
 
 #include <chrono>
@@ -40,18 +40,14 @@ const char* PhysicsScene::SceneResourceDir()
 }
 
 
-static GfxProgram program;
-static GLint vertexAttrib, colorAttrib, pointSizeAttrib;
+static std::unique_ptr<GfxProgram> program;
+//static GLint vertexAttrib, colorAttrib, pointSizeAttrib;
 void PhysicsScene::initGLOverride()
 {
-    if (!program.isLoaded)
+    if (!program)
     {
         // Load and compile the shaders into a glsl program
-        program = loadGraphicsProgram("particlevert.glsl", "particlefrag.glsl");
-        program.SetCameraFromPixelTransform(config.width,config.height); //,config.width/2.0f,config.height/2.0f,0.1f);
-        vertexAttrib = glGetAttribLocation(program.GetId(), "aVertex");
-        colorAttrib = glGetAttribLocation(program.GetId(), "aColor");
-        pointSizeAttrib = glGetAttribLocation(program.GetId(), "aPointSize");
+        program = loadProgram("particlevert.glsl", "fragshader.glsl", { ShaderFeature::VertexColor });
     }
 }
 
@@ -60,37 +56,37 @@ void PhysicsScene::drawOverride()
     if (points.size() > 0)
     {
         // Draw the particles
-        glUseProgram(program.GetId());
+        program->Use();
 
         glVertexAttribPointer(
-                    vertexAttrib,      // The attribute ID
+                    program->Attrib("aPosition"),      // The attribute ID
                     3,                  // size
                     GL_FLOAT,           // type
                     GL_FALSE,           // normalized?
                     sizeof(PhysicsPoint),                  // stride
                     points.data()         // underlying data
         );
-        glEnableVertexAttribArray ( vertexAttrib );
+        glEnableVertexAttribArray ( program->Attrib("aPosition") );
         
         glVertexAttribPointer(
-                            colorAttrib, // The attribute ID
+                            program->Attrib("aColor"), // The attribute ID
                             4,                  // size
                             GL_FLOAT,           // type
                             GL_FALSE,           // normalized?
                             sizeof(PhysicsPoint),   // stride
                             ((float*)points.data())+3       // underlying data
         );
-        glEnableVertexAttribArray(colorAttrib);
+        glEnableVertexAttribArray(program->Attrib("aColor"));
 
         glVertexAttribPointer(
-                            pointSizeAttrib, // The attribute ID
+                            program->Attrib("aPointSize"), // The attribute ID
                             1,                  // size
                             GL_FLOAT,           // type
                             GL_FALSE,           // normalized?
                             sizeof(PhysicsPoint),   // stride
                             ((float*)points.data())+7      // underlying data
         );
-        glEnableVertexAttribArray(pointSizeAttrib);
+        glEnableVertexAttribArray(program->Attrib("aPointSize"));
 
         // Draw the points!
         glDrawArrays(GL_POINTS, 0, points.size());

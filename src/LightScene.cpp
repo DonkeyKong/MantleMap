@@ -11,13 +11,6 @@
 LightScene::LightScene(ConfigService& config, AstronomyService& astro) : 
   Scene(config, SceneType::Base, SceneLifetime::Manual),
   projection(config),
-  fullscreen_rect_vertex_buffer_data
-  { 
-    0.0f, (float)config.height, 0.0f,
-    0.0f,  0.0f, 0.0f,
-    (float)config.width, (float)config.height, 0.0f,
-    (float)config.width,  0.0f, 0.0f
-  },
   astro(astro)
 {
   sunCurrentLat = 0;
@@ -45,37 +38,29 @@ const char* LightScene::SceneResourceDir()
 
 void LightScene::initGLOverride()
 {
-  // Create the LonLatLookupTexture
-  ImageRGBA lut = projection.getInvLookupTable();
-  LonLatLookupTexture = LoadImageToTexture(lut);
+    // Create the LonLatLookupTexture
+    ImageRGBA lut = projection.getInvLookupTable();
+    LonLatLookupTexture = std::make_unique<GfxTexture>(lut);
 
-  // Create and setup mapLayer1Texture
-  mapLayer1Texture = loadImageToTexture(mapImagePath.c_str());
-  
-  // Create and setup mapLayer2Texture
-  mapLayer2Texture = loadImageToTexture(mapImageNightPath.c_str());
-  
-  // Load and compile the shaders into a glsl program
-  program = loadGraphicsProgram(vertShader, fragShader);
-  program.SetCameraFromPixelTransform(config.width,config.height);
-}
+    // Create and setup mapLayer1Texture
+    mapLayer1Texture = loadTexture("map_day.png");
+    
+    // Create and setup mapLayer2Texture
+    mapLayer2Texture = loadTexture("map_night.png");
+    
+    // Load and compile the shaders into a glsl program
+    program = loadProgram("vertshader.glsl", "lightfragshader.glsl", 
+                            {
+                                ShaderFeature::PixelSnap,
+                                ShaderFeature::Texture
+                            });
 
-void LightScene::drawMapRect()
-{
-  glVertexAttribPointer(
-                        0, //vertexPosition_modelspaceID, // The attribute we want to configure
-                        3,                  // size
-                        GL_FLOAT,           // type
-                        GL_FALSE,           // normalized?
-                        0,                  // stride
-                        fullscreen_rect_vertex_buffer_data // (void*)0            // array buffer offset
-                );
-
-   // see above glEnableVertexAttribArray(vertexPosition_modelspaceID);
-   glEnableVertexAttribArray ( 0 );
-
-  // Draw the triangles!
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    // Create the mesh for the image view
+    //       X                  Y                          Z       U       V
+    mesh = { 0.0f,                0.0f,                   0.0f,   0.0f,   0.0f,
+            (float)mapLayer1Texture->GetWidth(), 0.0f,                   0.0f,   1.0f,   0.0f, 
+            0.0f,                       (float)mapLayer1Texture->GetHeight(),  0.0f,   0.0f,   1.0f,
+            (float)mapLayer1Texture->GetWidth(), (float)mapLayer1Texture->GetHeight(),  0.0f,   1.0f,   1.0f  };
 }
 
 bool LightScene::Query(std::string query, std::string& response)
@@ -314,43 +299,55 @@ void LightScene::updateOverride()
 void LightScene::drawOverride()
 {
 	// Select our shader program
-	glUseProgram(program.GetId());
+    program->Use();
 	
 	// Bind the day, night, and lon lat lookup textures to units 0, 1, and 2
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, mapLayer1Texture);
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, mapLayer2Texture);
-  glActiveTexture(GL_TEXTURE2);
-  glBindTexture(GL_TEXTURE_2D, LonLatLookupTexture);
-  
-  // Tell our shader which units to look for each texture on
-  program.SetUniform("uTexture1", 0);
-  program.SetUniform("uTexture2", 1);
-  program.SetUniform("uLonLatLut", 2);
-  program.SetUniform("uSunPropigationRad", sunPropAngleCurrent * (float)(M_PI / 180.0));
-  
-  // Tell the frag shader the size of the config in pixels
-  program.SetUniform("uScale", config.width, config.height);
-  
-  {
+    program->SetTexture0(*mapLayer1Texture);
+    program->SetTexture1(*mapLayer2Texture);
+    program->SetTexture2(*LonLatLookupTexture);
+    
+    // Set some additional uniforms our special shader uses
+    program->SetUniform("uSunPropigationRad", sunPropAngleCurrent * (float)(M_PI / 180.0));
+    {
+        double lat, lon;
+        astro.GetSolarPoint(TimeService::GetSceneTimeAsJulianDate(), lat, lon);
+        program->SetUniform("uLightBoost", astro.GetLightBoost(lat, lon));
+    }
+    
+    program->SetUniform("uDrawSun", true );
+    program->SetUniform("uDrawMoon", true );
+    
+    // Send the sun's current location to the shader program
+    program->SetUniform("uSunLonLat", (float)(sunCurrentLon * (M_PI / 180.0)), (float)(sunCurrentLat * (M_PI / 180.0)));
+    
+    // Do the same for the moon
     double lat, lon;
-    astro.GetSolarPoint(TimeService::GetSceneTimeAsJulianDate(), lat, lon);
-    program.SetUniform("uLightBoost", astro.GetLightBoost(lat, lon));
-  }
-  
-  
-  program.SetUniform("uDrawSun", true );
-  program.SetUniform("uDrawMoon", true );
-  
-  // Send the sun's current location to the shader program
-  program.SetUniform("uSunLonLat", (float)(sunCurrentLon * (M_PI / 180.0)), (float)(sunCurrentLat * (M_PI / 180.0)));
-  
-  // Do the same for the moon
-  double lat, lon;
-  astro.GetLunarPoint(TimeService::GetSceneTimeAsJulianDate(), lat, lon);
-  program.SetUniform("uMoonLonLat", (float)(lon * (M_PI / 180.0)), (float)(lat * (M_PI / 180.0)));
-  
-  // Draw a full config-sized rectagle using the current shader
-	drawMapRect();
+    astro.GetLunarPoint(TimeService::GetSceneTimeAsJulianDate(), lat, lon);
+    program->SetUniform("uMoonLonLat", (float)(lon * (M_PI / 180.0)), (float)(lat * (M_PI / 180.0)));
+    
+    // Finally, setup the main billboard render
+    glVertexAttribPointer(
+                  program->Attrib("aPosition"),      // The attribute ID
+                  3,                  // size
+                  GL_FLOAT,           // type
+                  GL_FALSE,           // normalized?
+                  5*sizeof(float),                  // stride
+                  mesh.data()         // underlying data
+          );
+
+    glEnableVertexAttribArray ( program->Attrib("aPosition") );
+    
+    glVertexAttribPointer(
+                        program->Attrib("aTexCoord"), // The attribute ID
+                        2,                  // size
+                        GL_FLOAT,           // type
+                        GL_FALSE,           // normalized?
+                        5*sizeof(float),   // stride
+                        mesh.data()+3      // underlying data
+                );
+                
+    glEnableVertexAttribArray(program->Attrib("aTexCoord"));
+
+    // Draw the triangles!
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }

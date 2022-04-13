@@ -166,12 +166,14 @@ bool Scene::Query(std::string query, std::string& response)
   return false;
 }
 
-GLuint Scene::loadImageToTexture(std::string resourceName)
+// Load an image using libpng and insert it straight into a texture
+std::unique_ptr<GfxTexture> Scene::loadTexture(std::string resourceName)
 {
-  return LoadImageToTexture(GetResourcePath(resourceName));
+    return std::make_unique<GfxTexture>(GetResourcePath(resourceName));
 }
 
-GfxProgram Scene::loadGraphicsProgram(std::string vertShaderName, std::string fragShaderName)
+// Load a vert and frag shader and create a program with them
+std::unique_ptr<GfxProgram> Scene::loadProgram(std::string vertShaderName, std::string fragShaderName, std::vector<std::string> features)
 {
-  return LoadGraphicsProgram(GetResourcePath(vertShaderName), GetResourcePath(fragShaderName));
+    return std::make_unique<GfxProgram>(config, GetResourcePath(vertShaderName), GetResourcePath(fragShaderName), features);
 }

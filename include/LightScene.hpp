@@ -20,14 +20,12 @@ protected:
     void drawOverride() override;
     
 private:
-    GfxProgram program;
-    GLuint mapLayer1Texture;
-    GLuint mapLayer2Texture;
-    std::string mapImagePath = "map_day.png";
-    std::string mapImageNightPath = "map_night.png";
-    std::string vertShader = "vertshader.glsl"; 
-    std::string fragShader = "lightfragshader.glsl";
+    std::unique_ptr<GfxProgram> program;
+    std::unique_ptr<GfxTexture> mapLayer1Texture;
+    std::unique_ptr<GfxTexture> mapLayer2Texture;
+    std::unique_ptr<GfxTexture> LonLatLookupTexture;
 
+    std::vector<float> mesh;
     double sunTargetLat;
     double sunTargetLon;
     float sunPropAngleCurrent;
@@ -36,10 +34,6 @@ private:
     double sunCurrentLon;
     bool overrideSunLocation;
 
-    // Helper function that draws a fullscreen rect, generally used to draw the map
-    void drawMapRect();
     NaturalEarth projection;
-    GLuint LonLatLookupTexture;
-    GLfloat fullscreen_rect_vertex_buffer_data[12];
     AstronomyService& astro;
 };

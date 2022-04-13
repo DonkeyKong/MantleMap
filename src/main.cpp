@@ -3,7 +3,6 @@
 #include "TimeService.hpp"
 #include "HttpService.hpp"
 #include "AstronomyService.hpp"
-#include "LoadShaders.hpp"
 #include "GLRenderContext.hpp"
 #include "Scene.hpp"
 #include "LightScene.hpp"

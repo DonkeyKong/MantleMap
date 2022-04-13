@@ -2,14 +2,10 @@
 
 #include "GLError.hpp"
 
-GfxProgram TextLabel::_program;
-std::string TextLabel::_vertShaderName = "fontvertshader.glsl"; 
-std::string TextLabel::_fragShaderName = "fontfragshader.glsl";
-GLuint TextLabel::_fontTextureLarge = 0;
-GLuint TextLabel::_fontTextureSmall = 0;
-GLuint TextLabel::_fontTextureBigTall = 0;
-GLint TextLabel::_vertexAttrib;
-GLint TextLabel::_coordinateAttrib;
+std::unique_ptr<GfxProgram> TextLabel::_program;
+std::unique_ptr<GfxTexture> TextLabel::_fontTextureLarge;
+std::unique_ptr<GfxTexture> TextLabel::_fontTextureSmall;
+std::unique_ptr<GfxTexture> TextLabel::_fontTextureBigTall;
 
 TextLabel::TextLabel(ConfigService& map) : SceneElement(map)
 {
@@ -22,18 +18,18 @@ TextLabel::TextLabel(ConfigService& map) : SceneElement(map)
 
 void TextLabel::initGL()
 {  
-  if (!_program.isLoaded)
+  if (!_program)
   {
     // Load and compile the shaders into a glsl program
-    _program.LoadShaders(map.GetResourcePath(_vertShaderName).c_str(),
-                         map.GetResourcePath(_fragShaderName).c_str());
+    _program = loadProgram("vertshader.glsl", "fragshader.glsl", 
+    {
+        ShaderFeature::PixelSnap,
+        ShaderFeature::Texture
+    });
     
-    _fontTextureLarge = LoadImageToTexture(map.GetResourcePath("font_6x6.png"));
-    _fontTextureSmall = LoadImageToTexture(map.GetResourcePath("font_4x6.png"));
-    _fontTextureBigTall = LoadImageToTexture(map.GetResourcePath("font_8x12.png"));
-    
-    _vertexAttrib = glGetAttribLocation(_program.GetId(), "aVertex");
-    _coordinateAttrib = glGetAttribLocation(_program.GetId(), "aTexCoord");
+    _fontTextureLarge = loadTexture("font_6x6.png");
+    _fontTextureSmall = loadTexture("font_4x6.png");
+    _fontTextureBigTall = loadTexture("font_8x12.png");
     print_if_glerror("InitGL for TextLabel");
   }
 }
@@ -121,16 +117,16 @@ float TextLabel::getFontTileHeight()
   return 16.0f;
 }
 
-GLuint TextLabel::getFontTexture()
+GfxTexture& TextLabel::getFontTexture()
 {
   if (_fontStyle == FontStyle::Regular)
-    return _fontTextureLarge;
+    return *_fontTextureLarge;
   else if (_fontStyle == FontStyle::Narrow)
-    return _fontTextureSmall;
+    return *_fontTextureSmall;
   else if (_fontStyle == FontStyle::BigNarrow)
-    return _fontTextureBigTall;
+    return *_fontTextureBigTall;
     
-  return _fontTextureLarge;
+  return *_fontTextureLarge;
 }
 
 void TextLabel::updateBuffers()
@@ -204,74 +200,60 @@ void TextLabel::drawInternal()
     return;
   
 	// Select our shader program
-	glUseProgram(_program.GetId());
+    _program->Use();
 	
-	// Setup the map transform
-	_program.SetCameraFromPixelTransform(map.width, map.height);
-	
-	// Bind the day, night, and lon lat lookup textures to units 0, 1, and 2
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, getFontTexture());
+    // Bind the font texture to texture unit 0
+    _program->SetTexture0(getFontTexture());
   
-  // Tell our shader which units to look for each texture on
-  _program.SetUniform("uFontTexture", 0);
-  
-  // Set a couple more uniforms
-  _program.SetUniform("uColor", _color);
-  
-  if (_alignment == HAlign::Left)
-  {
-    _program.SetUniform("uLocation", _pos);
-  }
-  else if (_alignment == HAlign::Right)
-  {
-    if (_direction==FlowDirection::Horizontal)
-    {
-      _program.SetUniform("uLocation", _pos.x - GetLength(), _pos.y);
-    }
-    else
-    {
-      _program.SetUniform("uLocation", _pos.x, _pos.y - GetLength());
-    }
-  }
-  else
-  {
-    if (_direction==FlowDirection::Horizontal)
-    {
-      _program.SetUniform("uLocation", _pos.x - GetLength() / 2.0f, _pos.y);
-    }
-    else
-    {
-      _program.SetUniform("uLocation", _pos.x, _pos.y - GetLength() / 2.0f);
-    }
-  }
-  
-  _program.SetUniform("uFontSizePx", getFontTileWidth() * _scale, getFontTileHeight() * _scale);
+    // Set the color of the text
+    _program->SetTint( _color);
     
-  glVertexAttribPointer(
-                      _vertexAttrib,      // The attribute ID
-                      3,                  // size
-                      GL_FLOAT,           // type
-                      GL_FALSE,           // normalized?
-                      0,                  // stride
-                      &_vertexXYZ[0]         // underlying data
-              );
+    Position2D pos = _pos;
 
-   glEnableVertexAttribArray ( _vertexAttrib );
-   
-   glVertexAttribPointer(
-                    _coordinateAttrib, // The attribute ID
-                    2,                  // size
-                    GL_FLOAT,           // type
-                    GL_FALSE,           // normalized?
-                    0,                  // stride
-                    &_vertexUV[0]      // underlying data
-            );
-            
-  glEnableVertexAttribArray(_coordinateAttrib);
+    // Adjust position given our flow and alignment
+    if (_alignment == HAlign::Right && _direction==FlowDirection::Horizontal)
+    {
+        pos -= {GetLength(), 0};
+    }
+    else if (_alignment == HAlign::Right && _direction==FlowDirection::Vertical)
+    {
+        pos -= {0, GetLength()};
+    }
+    else if (_alignment == HAlign::Center && _direction==FlowDirection::Horizontal)
+    {
+        pos -= {GetLength() / 2.0f, 0};
+    }
+    else if (_alignment == HAlign::Center && _direction==FlowDirection::Vertical)
+    {
+        pos -= {0, GetLength() / 2.0f};
+    }
+    
+    _program->SetModelTransform(pos.x, pos.y, getFontTileWidth() * _scale, getFontTileHeight() * _scale);
+        
+    glVertexAttribPointer(
+                        _program->Attrib("aPosition"),      // The attribute ID
+                        3,                  // size
+                        GL_FLOAT,           // type
+                        GL_FALSE,           // normalized?
+                        0,                  // stride
+                        &_vertexXYZ[0]         // underlying data
+                );
 
-  // Draw the triangles!
-  glDrawArrays(GL_TRIANGLES, 0, _text.size() * 2 * 3);
+    glEnableVertexAttribArray (_program->Attrib("aPosition") );
+    
+    glVertexAttribPointer(
+                        _program->Attrib("aTexCoord"), // The attribute ID
+                        2,                  // size
+                        GL_FLOAT,           // type
+                        GL_FALSE,           // normalized?
+                        0,                  // stride
+                        &_vertexUV[0]      // underlying data
+                );
+                
+    glEnableVertexAttribArray(_program->Attrib("aTexCoord"));
 
-  print_if_glerror("Internal draw for TextLabel");
+    // Draw the triangles!
+    glDrawArrays(GL_TRIANGLES, 0, _text.size() * 2 * 3);
+
+    print_if_glerror("Internal draw for TextLabel");
 }

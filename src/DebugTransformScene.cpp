@@ -9,14 +9,7 @@ DebugTransformScene::DebugTransformScene(ConfigService& map) : Scene(map, SceneT
     _label6(map),
     _label7(map),
     _label8(map),
-    projection(map),
-    fullscreen_rect_vertex_buffer_data
-    { 
-      0.0f, (float)map.height, 0.0f,
-      0.0f,  0.0f, 0.0f,
-      (float)map.width, (float)map.height, 0.0f,
-      (float)map.width,  0.0f, 0.0f
-    }
+    projection(map)
 {
     _label1.SetText("DEBUG");
     _label1.SetPosition(0,0);
@@ -61,50 +54,57 @@ const char* DebugTransformScene::SceneResourceDir()
 
 void DebugTransformScene::initGLOverride()
 {
-  // Create the LonLatLookupTexture
-  ImageRGBA lut = projection.getInvLookupTable();
-  LonLatLookupTexture = LoadImageToTexture(lut);
+    // Create the LonLatLookupTexture
+    ImageRGBA lut = projection.getInvLookupTable();
+    LonLatLookupTexture = std::make_unique<GfxTexture>(lut);
 
-  // Load and compile the shaders into a glsl program
-  program = loadGraphicsProgram(vertShader, fragShader);
-  program.SetCameraFromPixelTransform(config.width,config.height);
-}
+    // Load and compile the shaders into a glsl program
+    program = loadProgram("vertshader.glsl", "debugfragshader.glsl", 
+    {
+        ShaderFeature::PixelSnap,
+        ShaderFeature::Texture
+    });
 
-void DebugTransformScene::drawMapRect()
-{
-  glVertexAttribPointer(
-                        0, //vertexPosition_modelspaceID, // The attribute we want to configure
-                        3,                  // size
-                        GL_FLOAT,           // type
-                        GL_FALSE,           // normalized?
-                        0,                  // stride
-                        fullscreen_rect_vertex_buffer_data // (void*)0            // array buffer offset
-                );
-
-   // see above glEnableVertexAttribArray(vertexPosition_modelspaceID);
-   glEnableVertexAttribArray ( 0 );
-
-  // Draw the triangles!
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    // Create the mesh for the image view
+    //       X                  Y                          Z       U       V
+    mesh = { 0.0f,                0.0f,                   0.0f,   0.0f,   0.0f,
+            (float)LonLatLookupTexture->GetWidth(), 0.0f,                   0.0f,   1.0f,   0.0f, 
+            0.0f,                       (float)LonLatLookupTexture->GetHeight(),  0.0f,   0.0f,   1.0f,
+            (float)LonLatLookupTexture->GetWidth(), (float)LonLatLookupTexture->GetHeight(),  0.0f,   1.0f,   1.0f  };
 }
 
 void DebugTransformScene::drawOverride()
 {
-	// Select our shader program
-	glUseProgram(program.GetId());
-	
-	// Assign the transform LUT to texture 0
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, LonLatLookupTexture);
+    program->Use();
+        
+    // Assign the transform LUT to texture 0
+    program->SetTexture0(*LonLatLookupTexture);
   
-  // Tell our shader which units to look for each texture on
-  program.SetUniform("uLonLatLut", 0);
-  
-  // Tell the frag shader the size of the map in pixels
-  program.SetUniform("uScale", config.width, config.height);
-  
-  // Draw a full map-sized rectagle using the current shader
-	drawMapRect();
+    // Draw a full map-sized rectagle using the current shader
+    glVertexAttribPointer(
+                  program->Attrib("aPosition"),      // The attribute ID
+                  3,                  // size
+                  GL_FLOAT,           // type
+                  GL_FALSE,           // normalized?
+                  5*sizeof(float),                  // stride
+                  mesh.data()         // underlying data
+          );
+
+    glEnableVertexAttribArray ( program->Attrib("aPosition") );
+    
+    glVertexAttribPointer(
+                        program->Attrib("aTexCoord"), // The attribute ID
+                        2,                  // size
+                        GL_FLOAT,           // type
+                        GL_FALSE,           // normalized?
+                        5*sizeof(float),   // stride
+                        mesh.data()+3      // underlying data
+                );
+                
+    glEnableVertexAttribArray(program->Attrib("aTexCoord"));
+
+    // Draw the triangles!
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
 	// Draw the label
 	_label1.Draw();
@@ -112,7 +112,7 @@ void DebugTransformScene::drawOverride()
 	_label3.Draw();
 	_label4.Draw();
 	_label5.Draw();
-  _label6.Draw();
-  _label7.Draw();
-  _label8.Draw();
+    _label6.Draw();
+    _label7.Draw();
+    _label8.Draw();
 }

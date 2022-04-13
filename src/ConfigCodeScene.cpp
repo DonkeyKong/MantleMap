@@ -1,5 +1,5 @@
 #include "ConfigCodeScene.hpp"
-#include "LoadShaders.hpp"
+#include "GfxProgram.hpp"
 
 #include <fmt/format.h>
 #include <chrono>

@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project("MantleMap")
 
 set(CMAKE_CXX_STANDARD 17)
+include("cmake/SystemTarget.cmake")
 
 find_file(BCM_HOST_PATH NAMES "bcm_host.h" PATHS /opt/vc/include/)
 message("BCM host header: ${BCM_HOST_PATH}")
@@ -18,6 +19,7 @@ include("cmake/Astro.cmake")
 
 # httplib - Cmake, header-only
 add_subdirectory("deps/cpp-httplib")
+system_target(httplib) # Silence annoying warnings
 
 # fmt - Cmake, header-only
 add_subdirectory("deps/fmt")
@@ -25,6 +27,7 @@ add_subdirectory("deps/fmt")
 # json - Cmake, header-only
 set(JSON_BuildTests OFF)
 add_subdirectory("deps/json")
+system_target(nlohmann_json) # Silence annoying warnings
 
 # rpi-rgb-led-matrix, Make, generates native libs
 if (BCM_HOST_PATH)
@@ -53,7 +56,9 @@ add_executable( ${PROJECT_NAME}
                     src/ImageRGBA.cpp
                     src/ImageView.cpp
                     src/LightScene.cpp
-                    src/LoadShaders.cpp
+                    src/GfxProgram.cpp
+                    src/GfxShader.cpp
+                    src/GfxTexture.cpp
                     src/main.cpp
                     src/ConfigService.cpp
                     src/MapTimeScene.cpp

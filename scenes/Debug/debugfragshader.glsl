@@ -1,17 +1,30 @@
 precision mediump float;
 
-// Uniforms
-uniform vec2 uScale;
-uniform sampler2D uLonLatLut;
-uniform mat4 uCameraFromPixelTransform;
+// Mandatory inputs
+//attribute vec4 aPosition;
+uniform vec4 uTint; // Multiplies by the final color (applied in frag shader)
+uniform mat4 uPixelFromModelTransform; // Moves, scales, and rotates the mesh being drawn
+uniform mat4 uCameraFromPixelTransform; // Captures the display output size
+
+// Optional: Texture Mapping
+#ifdef FEATURE_TEXTURE
+uniform sampler2D uTexture;
+uniform vec2 uTextureSize;
+//attribute vec2 aTexCoord;
+varying vec2 vTexCoord;
+#endif
+
+// vec3 hsv2rgb(vec3 c)
+// {
+//   vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+//   vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+//   return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+// }
 
 void main(void)
 {
-    vec2 position = (gl_FragCoord.xy - vec2(-0.5, 0.5))/(uScale - vec2(1,1));
-    vec2 texCoord = vec2(position.x, 1.0 - position.y);
-
     // Retrieve longitude and lattitude
-    vec4 lonLatVec = texture2D(uLonLatLut, texCoord);
+    vec4 lonLatVec = texture2D(uTexture, vTexCoord);
     lonLatVec.xyz = (lonLatVec.xyz - 0.5) * 2.0;
     
     if (lonLatVec.a == 0.0)

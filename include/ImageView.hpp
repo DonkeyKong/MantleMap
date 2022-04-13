@@ -1,6 +1,8 @@
 #pragma once
 
-#include "LoadShaders.hpp"
+#include "Attributes.hpp"
+#include "GfxTexture.hpp"
+#include "GfxProgram.hpp"
 #include "SceneElement.hpp"
 #include "ConfigService.hpp"
 
@@ -9,7 +11,7 @@ class ImageView : public SceneElement
  public:
     ImageView(ConfigService&);
     virtual ~ImageView();
-    void SetImage(ImageRGBA image);
+    void SetImage(std::shared_ptr<ImageRGBA> image);
     void SetPosition(float x, float y);
     void SetColor(float r, float g, float b, float a);
     void SetScale(float scale);
@@ -19,13 +21,12 @@ protected:
     virtual void initGL() override;
     virtual void drawInternal() override;
 private:
-    float x, y, r, g, b, a, scale;
-    std::vector<float> mesh;
-    GLuint texture;
-    ImageRGBA image;
+    float x, y, scale;
+    Color tint;
     bool dirty;
-    static GfxProgram _program;
-    static GLint _vertexAttrib;
-    static GLint _textureAttrib;
+    std::shared_ptr<ImageRGBA> image;
+    std::vector<float> mesh;
+    std::unique_ptr<GfxTexture> texture;
+    static std::unique_ptr<GfxProgram> _program;
 };
 

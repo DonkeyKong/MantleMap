@@ -4,7 +4,7 @@
 #include <string>
 #include <mutex>
 
-#include "LoadShaders.hpp"
+#include "GfxProgram.hpp"
 #include "SceneElement.hpp"
 #include "ConfigService.hpp"
 #include "Attributes.hpp"
@@ -32,11 +32,7 @@ protected:
     
 private:
     std::mutex _mutex;
-    static GfxProgram _program;
-    static std::string _vertShaderName; 
-    static std::string _fragShaderName;
-    static GLint _vertexAttrib;
-    static GLint _colorAttrib;
+    static std::unique_ptr<GfxProgram> _program;
     
     // Buffers containing render data
     bool _dirty;

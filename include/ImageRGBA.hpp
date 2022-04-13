@@ -9,13 +9,14 @@ public:
     ImageRGBA();
     ImageRGBA(int width, int height);
     uint8_t* data();
-    int width();
-    int height();
-    int padW();
-    int padH();
+    const uint8_t* data() const;
+    int width() const;
+    int height() const;
+    int padW() const;
+    int padH() const;
     void PadToPowerOfTwo();
-    static ImageRGBA FromPngFile(std::string imagePath);
-    static ImageRGBA FromQrPayload(std::string qrPayload);
+    static std::shared_ptr<ImageRGBA> FromPngFile(const std::string& imagePath);
+    static std::shared_ptr<ImageRGBA> FromQrPayload(const std::string& qrPayload);
     uint8_t& operator[](std::size_t idx);
 private:
     void read_png_file(const char* file_name);
