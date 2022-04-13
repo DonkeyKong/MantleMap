@@ -18,8 +18,8 @@ void PhysicsScene::showOverride()
     for (int i=0; i < points.size(); i++)
     {
         points[i].pos = Random(Position{0.0f, 0.0f, 0.0f}, Position{(float)config.width, (float)config.height, 0.0f});
-        points[i].size = Random(0.5f, 3.0f);
-        points[i].mass = pow(points[i].size, 2.0f) * 3.0f; //Random(10.0f, 20.0f);
+        points[i].size = Random(0.1f, 1.5f);
+        points[i].mass = pow(points[i].size, 2.0f) * 8.0f; //Random(10.0f, 20.0f);
         points[i].velocity = Random(Position{-0.05f, -0.05f, 0.0f}, Position{0.05f, 0.05f, 0.0f});
         points[i].color = Random(HSVColor(0.0f, 1.0f, 0.5f, 1.0f), HSVColor(360.0f, 1.0f, 0.6f, 1.0f));
     }
@@ -96,7 +96,9 @@ void PhysicsScene::drawOverride()
 static inline bool gravForce(const PhysicsPoint& p1, const PhysicsPoint& p2, Vec3& a1, Vec3& a2)
 {
     const float G = 0.01f;
-    float d2 = (p1.pos-p2.pos).mag2();
+    const float sDist = 0.05;
+
+    float d2 = (p1.pos-p2.pos).mag2() * sDist * sDist;
     float d = sqrt(d2);
 
     if (d < (p1.size+p2.size / 3.0f))
@@ -133,7 +135,7 @@ static inline void merge(PhysicsPoint& p1, PhysicsPoint& p2)
 
 void PhysicsScene::updateOverride()
 {
-    const float dT = 0.1;
+    const float dT = 0.01;
 
     updateCounter = (updateCounter + 1) % 30000;
 
@@ -142,7 +144,7 @@ void PhysicsScene::updateOverride()
         {(float)config.width / 2.0f, (float)config.height / 2.0f, 0.0f},
         {},
         0,
-        15.0,
+        100.0,
         {}
     };
 
