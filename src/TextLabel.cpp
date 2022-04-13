@@ -228,7 +228,7 @@ void TextLabel::drawInternal()
         pos -= {0, GetLength() / 2.0f};
     }
     
-    _program->SetModelTransform(pos.x, pos.y, getFontTileWidth() * _scale, getFontTileHeight() * _scale);
+    _program->SetModelTransform(Transform3D::FromTranslationAndScale(pos.x, pos.y, 0, getFontTileWidth() * _scale, getFontTileHeight() * _scale, 1.0f));
         
     glVertexAttribPointer(
                         _program->Attrib("aPosition"),      // The attribute ID

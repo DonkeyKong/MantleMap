@@ -18,7 +18,7 @@ GfxProgram::GfxProgram(ConfigService& config, const std::string& vertPath, const
     // Set some default values in uniforms that will allow rendering
     // something sane if not setup elsewhere
     SetTint({1,1,1,1});
-    SetModelTransform(0,0,1);
+    SetModelTransform(Transform3D()); // Constructs identity by default
     setCameraFromPixelTransform();
 }
 
@@ -88,8 +88,7 @@ void GfxProgram::SetTexture3(const GfxTexture& texture)
 
 void GfxProgram::setCameraFromPixelTransform()
 {
-
-  // Camera space is like this:
+  // Clip space is like this:
   //////////////////////////////
   //           (0,1)          //
   //             |            //
@@ -103,33 +102,30 @@ void GfxProgram::setCameraFromPixelTransform()
   // But our app acts like everything is in pixel space on the map
   // This transform aims to paper over this inconvenient mismatch
 
-  float xform[] = { 2.0f / (float)config.width , 0.0f, 0.0f, 0.0f,
-                      0.0f,  -2.0f / (float)config.height, 0.0f, 0.0f,
-                      0.0f, 0.0f, 1.0f, 0.0f,
-                      -1.0f, 1.0f, 0.0f, 1.0f};
+  // We want a transform that performs the following scalings
+  // X: [0,config.width] ==> [-1,1]
+  // Y: [0,config.height] ==> [-1,1]
+  // Z: [-1000, 1000] => [-1, 1]
+
+  auto xform = Transform3D::FromTranslationAndScale(    
+    -1, 1, 0, 
+    2.0f / (float)config.width, 
+    -2.0f / (float)config.height, 
+    1.0f / 2000.0f );
+
   GLint loc = glGetUniformLocation(Id, "uCameraFromPixelTransform");
   if (loc != -1)
   {
-    glUniformMatrix4fv(	loc, 1, GL_FALSE, xform);
+    glUniformMatrix4fv(	loc, 1, GL_FALSE, xform.data());
   }
 }
 
-void GfxProgram::SetModelTransform(float tX, float tY, float s)
+void GfxProgram::SetModelTransform(const Transform3D& transform)
 {
-  SetModelTransform(tX, tY, s, s);
-}
-
-void GfxProgram::SetModelTransform(float tX, float tY, float sX, float sY)
-{
-  float xform[] = {  sX ,   0.0f,   0.0f,   0.0f,
-                    0.0f,    sY ,   0.0f,   0.0f,
-                    0.0f,   0.0f,   1.0f,   0.0f,
-                      tX,     tY,   0.0f,   1.0f };
-
   GLint loc = glGetUniformLocation(Id, "uPixelFromModelTransform");
   if (loc != -1)
   {
-    glUniformMatrix4fv(	loc, 1, GL_FALSE, xform);
+    glUniformMatrix4fv(	loc, 1, GL_FALSE, transform.data());
   }
 }
 

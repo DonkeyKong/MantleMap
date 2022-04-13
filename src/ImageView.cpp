@@ -88,7 +88,7 @@ void ImageView::drawInternal()
     _program->SetTexture0(*texture);
     print_if_glerror("Texture bind for ImageView");
     _program->SetTint(tint);
-    _program->SetModelTransform(x ,y, scale);
+    _program->SetModelTransform(Transform3D::FromTranslationAndScale(x,y,0,scale));
     print_if_glerror("Shader setup for ImageView");
 
     glVertexAttribPointer(

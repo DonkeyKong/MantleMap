@@ -31,8 +31,7 @@ public:
 
     // All shaders support these
     void SetTint(const Color& rgba);
-	void SetModelTransform(float tX, float tY, float scale);
-    void SetModelTransform(float tX, float tY, float scaleX, float scaleY);
+	void SetModelTransform(const Transform3D& transform);
     void SetTexture0(const GfxTexture& texture);
     void SetTexture1(const GfxTexture& texture);
     void SetTexture2(const GfxTexture& texture);

@@ -2,6 +2,7 @@
 #include "GfxProgram.hpp"
 #include "Utils.hpp"
 
+#include <math.h>
 #include <chrono>
 #include <ctime>
 
@@ -17,7 +18,7 @@ void PhysicsScene::showOverride()
     // Initialize the list of particles
     for (int i=0; i < points.size(); i++)
     {
-        points[i].pos = Random(Position{0.0f, 0.0f, 0.0f}, Position{(float)config.width, (float)config.height, 0.0f});
+        points[i].pos = Random(Position{-(float)config.width / 2.0f, -(float)config.height / 2.0f, 0.0f}, Position{(float)config.width / 2.0f, (float)config.height / 2.0f, 0.0f});
         points[i].size = Random(0.1f, 1.5f);
         points[i].mass = pow(points[i].size, 2.0f) * 8.0f; //Random(10.0f, 20.0f);
         points[i].velocity = Random(Position{-0.1f, -0.1f, 0.0f}, Position{0.1f, 0.1f, 0.0f});
@@ -57,6 +58,10 @@ void PhysicsScene::drawOverride()
     {
         // Draw the particles
         program->Use();
+
+        float rY = ((float)updateCounter / 600.0f) * M_PI * 2.0f;
+        program->SetModelTransform( Transform3D::FromTranslation(config.width/2.0f, config.height/2.0f, 0.0f) * 
+                                    Transform3D::FromEuler(0, rY, 0) );
 
         glVertexAttribPointer(
                     program->Attrib("aPosition"),      // The attribute ID
@@ -137,11 +142,11 @@ void PhysicsScene::updateOverride()
 {
     const float dT = 0.004;
 
-    updateCounter = (updateCounter + 1) % 30000;
+    updateCounter = (updateCounter + 1) % 600;
 
     PhysicsPoint phantom
     {
-        {(float)config.width / 2.0f, (float)config.height / 2.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f},
         {},
         0,
         100.0,

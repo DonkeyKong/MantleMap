@@ -141,7 +141,7 @@ void PolyLine::drawInternal()
     _program->Use();
   
     // Set the position and color
-    _program->SetModelTransform(_locX, _locY, 1.0f);
+    _program->SetModelTransform(Transform3D::FromTranslation(_locX, _locY, 0));
     _program->SetTint(_color);
     
     glVertexAttribPointer(
