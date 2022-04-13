@@ -20,8 +20,8 @@ void PhysicsScene::showOverride()
         points[i].pos = Random(Position{0.0f, 0.0f, 0.0f}, Position{(float)config.width, (float)config.height, 0.0f});
         points[i].size = Random(0.1f, 1.5f);
         points[i].mass = pow(points[i].size, 2.0f) * 8.0f; //Random(10.0f, 20.0f);
-        points[i].velocity = Random(Position{-0.05f, -0.05f, 0.0f}, Position{0.05f, 0.05f, 0.0f});
-        points[i].color = Random(HSVColor(0.0f, 1.0f, 0.5f, 1.0f), HSVColor(360.0f, 1.0f, 0.6f, 1.0f));
+        points[i].velocity = Random(Position{-0.1f, -0.1f, 0.0f}, Position{0.1f, 0.1f, 0.0f});
+        points[i].color = Random(HSVColor(0.0f, 0.0f, 0.1f, 1.0f), HSVColor(360.0f, 0.6f, 1.0f, 1.0f));
     }
 }
 
@@ -135,7 +135,7 @@ static inline void merge(PhysicsPoint& p1, PhysicsPoint& p2)
 
 void PhysicsScene::updateOverride()
 {
-    const float dT = 0.01;
+    const float dT = 0.004;
 
     updateCounter = (updateCounter + 1) % 30000;
 
