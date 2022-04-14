@@ -92,6 +92,7 @@ class Scene
     std::vector<SceneElement*> Elements;
     ConfigService& config;
     std::string BaseSceneName;
+    bool clearBeforeDraw;
     
   private:
     // Initialize all OpenGL data like textures and shaders

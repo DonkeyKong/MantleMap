@@ -6,23 +6,35 @@
 #include <chrono>
 #include <ctime>
 
-PhysicsScene::PhysicsScene(ConfigService& map) : Scene(map, SceneType::Base, SceneLifetime::Manual),
-    points(150)
+PhysicsScene::PhysicsScene(ConfigService& config) : Scene(config, SceneType::Base, SceneLifetime::Manual),
+    points(150), 
+    bgFill(config)
 {
     srand(time(nullptr));
+
+    bgFill.AddPoint({{0,0,0},{}});
+    bgFill.AddPoint({{-config.width / 2.0f, config.height / 2.0f,0},{}});
+    bgFill.AddPoint({{config.width / 2.0f, config.height / 2.0f,0},{}});
+    bgFill.AddPoint({{config.width / 2.0f, -config.height / 2.0f,0},{}});
+    bgFill.AddPoint({{-config.width / 2.0f, -config.height / 2.0f,0},{}});
+    bgFill.AddPoint({{-config.width / 2.0f, config.height / 2.0f,0},{}});
+    bgFill.SetLocation(config.width / 2.0f, config.height / 2.0f);
+    bgFill.SetColor({0,0,0,0.03});
 }
 
 void PhysicsScene::showOverride()
 {
+    clearBeforeDraw = true;
     updateCounter = 0;
     // Initialize the list of particles
     for (int i=0; i < points.size(); i++)
     {
-        points[i].pos = Random(Position{-(float)config.width / 2.0f, -(float)config.height / 2.0f, 0.0f}, Position{(float)config.width / 2.0f, (float)config.height / 2.0f, 0.0f});
+        points[i].pos = Random( Position{-(float)config.width / 2.0f, -(float)config.height / 2.0f, -(float)config.width / 2.0f}, 
+                                Position{ (float)config.width / 2.0f,  (float)config.height / 2.0f,  (float)config.width / 2.0f} );
         points[i].size = Random(0.1f, 1.5f);
         points[i].mass = pow(points[i].size, 2.0f) * 8.0f; //Random(10.0f, 20.0f);
-        points[i].velocity = Random(Position{-0.1f, -0.1f, 0.0f}, Position{0.1f, 0.1f, 0.0f});
-        points[i].color = Random(HSVColor(0.0f, 0.0f, 0.1f, 1.0f), HSVColor(360.0f, 0.6f, 1.0f, 1.0f));
+        points[i].velocity = Random(Position{-1.0f, -1.0f, -1.0f}, Position{1.0f, 1.0f, 1.0f});
+        points[i].color = Random(HSVColor(0.0f, 0.0f, 0.1f, 1.0f), HSVColor(360.0f, 0.8f, 0.8f, 1.0f));
     }
 }
 
@@ -54,12 +66,21 @@ void PhysicsScene::initGLOverride()
 
 void PhysicsScene::drawOverride()
 {
+    clearBeforeDraw = false;
+    
+    glEnable(GL_BLEND);
+    bgFill.Draw();
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_BLEND);
+
     if (points.size() > 0)
     {
         // Draw the particles
         program->Use();
 
-        float rY = ((float)updateCounter / 600.0f) * M_PI * 2.0f;
+        program->SetTint({0.5, 0.5, 1.0, 1.0});
+
+        float rY = ((float)updateCounter / 6000.0f) * M_PI * 2.0f;
         program->SetModelTransform( Transform3D::FromTranslation(config.width/2.0f, config.height/2.0f, 0.0f) * 
                                     Transform3D::FromEuler(0, rY, 0) );
 
@@ -108,10 +129,8 @@ static inline bool gravForce(const PhysicsPoint& p1, const PhysicsPoint& p2, Vec
 
     if (d < (p1.size+p2.size / 3.0f))
     {
-        a1.x = 0.0f;
-        a1.y = 0.0f;
-        a2.x = 0.0f;
-        a2.y = 0.0f;
+        a1 = {0 , 0 , 0};
+        a2 = {0 , 0 , 0};
         return true;
     }
 
@@ -142,7 +161,7 @@ void PhysicsScene::updateOverride()
 {
     const float dT = 0.004;
 
-    updateCounter = (updateCounter + 1) % 600;
+    updateCounter = (updateCounter + 1) % 6000;
 
     PhysicsPoint phantom
     {

@@ -129,8 +129,4 @@ void GLRenderContext::BeginDraw()
   // Bind to the frame buffer
   glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
   glViewport(0,0,_map.width,_map.height); // Render on the whole framebuffer, complete from the lower left corner to the upper right
-    
-  // Clear the whole buffer
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear( GL_COLOR_BUFFER_BIT );
 }

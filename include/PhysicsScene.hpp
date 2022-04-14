@@ -2,6 +2,7 @@
 
 #include "Scene.hpp"
 #include "Attributes.hpp"
+#include "PolyFill.hpp"
 
 class PhysicsScene : public Scene
 {
@@ -18,7 +19,7 @@ private:
     virtual void updateOverride() override;
     virtual void showOverride() override;
 
-
+    PolyFill bgFill;
     std::vector<PhysicsPoint> points;
     int updateCounter;
 };

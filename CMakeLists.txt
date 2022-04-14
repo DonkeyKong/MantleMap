@@ -37,6 +37,7 @@ endif()
 # libpng, we build this ourselves because oh my god operating systems
 if (APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
 set(PNG_ARM_NEON on)
+message("Apple Silicon detected, manually forcing ARM NEON optimizations for libpng")
 endif()
 set(PNG_SHARED OFF)
 set(PNG_TESTS OFF)
@@ -65,6 +66,7 @@ add_executable( ${PROJECT_NAME}
                     src/NaturalEarth.cpp
                     src/PhysicsScene.cpp
                     src/PolyLine.cpp
+                    src/PolyFill.cpp
                     src/Scene.cpp
                     src/SceneElement.cpp
                     src/SolarScene.cpp

@@ -342,7 +342,7 @@ public:
         trX.col1_.y = cos(rX);
         trX.col1_.z = sin(rX);
         trX.col2_.y = -sin(rX);
-        trX.col2_.z = sin(rX);
+        trX.col2_.z = cos(rX);
 
         Transform3D trY;
         trY.col0_.x = cos(rY);
@@ -356,7 +356,7 @@ public:
         trZ.col1_.x = -sin(rZ);
         trZ.col1_.y = cos(rZ);
 
-        return trZ * trY * trX;
+        return trZ * trY * trX; 
     }
 
     static Transform3D FromTranslationAndScale(float tX, float tY, float tZ, float s)

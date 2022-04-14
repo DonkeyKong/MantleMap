@@ -111,7 +111,7 @@ void GfxProgram::setCameraFromPixelTransform()
     -1, 1, 0, 
     2.0f / (float)config.width, 
     -2.0f / (float)config.height, 
-    1.0f / 2000.0f );
+    1.0f / 1000.0f );
 
   GLint loc = glGetUniformLocation(Id, "uCameraFromPixelTransform");
   if (loc != -1)

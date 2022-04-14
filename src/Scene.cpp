@@ -13,6 +13,7 @@ Scene::Scene(ConfigService& map, SceneType sceneType, SceneLifetime sceneLifetim
   _sceneType = sceneType;
   _sceneLifetime = sceneLifetime;
   _sceneLifetimeSeconds = fractionalSeconds(10.0);
+  clearBeforeDraw = true;
 }
 
 Scene::~Scene()
@@ -99,6 +100,14 @@ void Scene::Draw()
   {
     initGL();
     print_if_glerror("InitGL for scene " << SceneName());
+
+    if (_sceneType == SceneType::Base && clearBeforeDraw)
+    {
+        // Clear the whole buffer
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear( GL_COLOR_BUFFER_BIT );
+    }
+
     drawOverride();
     print_if_glerror("Draw for scene " << SceneName());
   }

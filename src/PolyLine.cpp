@@ -5,10 +5,6 @@
 #define M_HALFPI 1.57079632679f
 
 std::unique_ptr<GfxProgram> PolyLine::_program;
-// std::string PolyLine::_vertShaderName = "flatvertshader.glsl"; 
-// std::string PolyLine::_fragShaderName = "flatfragshader.glsl";
-// GLint PolyLine::_vertexAttrib;
-// GLint PolyLine::_colorAttrib;
 
 PolyLine::PolyLine(ConfigService& map) : SceneElement(map)
 {    
