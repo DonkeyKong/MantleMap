@@ -2,6 +2,10 @@
 
 #include <assert.h>
 #include <filesystem>
+#include <fmt/format.h>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 #include "GLError.hpp"
 
@@ -21,14 +25,32 @@ Scene::~Scene()
   // Nothing to do here because we have no dynamically allocated resources
 }
 
+void Scene::RegisterEndpoints(HttpService& http)
+{
+    http.Server().Get(fmt::format("/scenes/{}", SceneName()), [=](const httplib::Request& req, httplib::Response& res) 
+    {
+        json sceneInfo = json::object();
+        
+        sceneInfo["name"] = SceneName();
+        sceneInfo["visible"] = Visible();
+        sceneInfo["sceneType"] = GetSceneType() == SceneType::Base ? "Base" : "Overlay";
+        
+        std::stringstream ss;
+        ss << std::setw(4) << sceneInfo;
+        res.body = ss.str();
+    });
+
+    registerEndpointsOverride(http);
+}
+
 std::string Scene::GetResourcePath(std::string resourceName)
 {
-  auto filePath = std::filesystem::path(config.sceneResourcePath) / SceneName() / resourceName;
+  auto filePath = std::filesystem::path(config.sceneResourcePath()) / SceneName() / resourceName;
   if (std::filesystem::exists(filePath))
   {
     return filePath;
   }
-  filePath = std::filesystem::path(config.sceneResourcePath) / "Shared" / resourceName;
+  filePath = std::filesystem::path(config.sceneResourcePath()) / "Shared" / resourceName;
   if (std::filesystem::exists(filePath))
   {
     return filePath;
@@ -120,6 +142,11 @@ void Scene::OnSceneChanged(std::string baseSceneName)
 }
 
 void Scene::initGLOverride()
+{
+  // Do nothing, child objects should override
+}
+
+void Scene::registerEndpointsOverride(HttpService& http)
 {
   // Do nothing, child objects should override
 }

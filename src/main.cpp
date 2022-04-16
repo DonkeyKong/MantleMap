@@ -26,12 +26,19 @@
 #include <vector>
 #include <iostream>
 
+#include <nlohmann/json.hpp>
 #include <fmt/format.h>
 #include <sigslot/signal.hpp>
+
+using json = nlohmann::json;
+
+static const std::string DEFAULT_SCENE_NAME = "Solar";
+static const int DEFAULT_FPS = 60;
 
 volatile bool interrupt_received = false;
 volatile bool internal_exit = false;
 static bool sleeping = false;
+static auto expectedFrameTime = std::chrono::high_resolution_clock::duration::min();
 
 static ConfigService configService;
 static std::vector<Scene*> baseScenes;
@@ -127,90 +134,17 @@ static void reset()
     showScene(0);
 }
 
-// static void executeCommand(const char* src, const char* cmd, ConfigService& configService)
-// {
-//     std::string command(cmd);
-//     std::string source(src);
+static void wake()
+{
+    sleeping = false;
+}
 
-//     if (cmdDebugScenePtr != nullptr)
-//     {
-//       cmdDebugScenePtr->ShowCmd(command);
-//     }
+static void sleep()
+{
+    sleeping = true;
+}
 
-//     if (command == "exit")
-//     {
-//       std::cout << "Sending internal exit signal..." << std::endl;
-//       internal_exit = true;
-//     }
-//     else if (command == "help")
-//     {
-//       printCmdMenu();
-//     }
-//     else if (command == "sleep")
-//     {
-//       sleeping = true;
-//     }
-//     else if (command == "light adjust on")
-//     {
-//       configService.lightAdjustEnabled = true;
-//     }
-//     else if (command == "light adjust off")
-//     {
-//       configService.lightAdjustEnabled = false;
-//     }
-//     else if (command.rfind("base layer ", 0) == 0)
-//     {
-//       std::string newSceneName = command.substr(11);
-//       Scene* scene = getBaseSceneByName(newSceneName);
-//       if (scene != nullptr)
-//         swapBaseScene(scene->SceneName());
-//       else
-//         std::cout << "The requested base layer \"" << newSceneName << "\" does not exist." << std::endl;
-//     }
-//     else if (command == "reset")
-//     {
-
-//     }
-//     else
-//     {
-//       // Unrecognized queries fall through in their entirety to the scenes
-//       bool handled = false;
-//       std::string result;
-
-//       if (!handled)
-//       {
-//         for (Scene* scene : baseScenes)
-//         {
-//           if (scene->Query(command, result))
-//           {
-//             handled = true;
-//             break;
-//           }
-//         }
-//       }
-
-//       if (!handled)
-//       {
-//         for (Scene* scene : overlayScenes)
-//         {
-//           if (scene->Query(command, result))
-//           {
-//             handled = true;
-//             break;
-//           }
-//         }
-//       }
-
-//       std::cout << "[" << source << "]: ";
-
-//       if (handled)
-//         std::cout << result << std::endl;
-//       else
-//         std::cout << "Command \"" << command << "\" was not recognized." << std::endl;
-//     }
-// }
-
-static void addScene(Scene* scene)
+static void addScene(Scene* scene, HttpService& http)
 {
     // Subscribe the scene to system events
     sceneChanged.connect(&Scene::OnSceneChanged, scene);
@@ -220,6 +154,9 @@ static void addScene(Scene* scene)
         baseScenes.push_back(scene);
     else
         overlayScenes.push_back(scene);
+
+    // Register the scene with the server
+    scene->RegisterEndpoints(http);
 }
 
 static void addButton(InputButton& b)
@@ -249,16 +186,110 @@ static void addButton(InputButton& b)
     });
 }
 
+void setupSystemHttpEndpoints(httplib::Server& srv)
+{
+    srv.Post("/system/sleep", [=](const httplib::Request& req, httplib::Response& res) 
+    {
+        sleep();
+    });
+
+    srv.Post("/system/reset", [=](const httplib::Request& req, httplib::Response& res) 
+    {
+        reset();
+    });
+
+    srv.Post("/system/restart", [=](const httplib::Request& req, httplib::Response& res) 
+    {
+        internal_exit = true;
+    });
+
+    srv.Patch("/system/settings", [=](const httplib::Request& req, httplib::Response& res) 
+    {
+        auto settingsPatch = json::parse(req.body);
+
+        for (auto& kvp : settingsPatch.items())
+        {
+            if (!configService.HasKey(kvp.key()))
+            {
+                res.status = 400;
+                res.body = fmt::format("Bad patch request, settings key {} is invalid.", kvp.key());
+                return;
+            }
+
+            if (!configService.ValueTypeMatches(kvp.key(), kvp.value()))
+            {
+                res.status = 400;
+                res.body = fmt::format("Bad patch request, value {} was an incorrect type.", kvp.key());
+                return;
+            }
+        }
+
+        for (auto& kvp : settingsPatch.items())
+        {
+            configService.SetConfigValue(kvp.key(), kvp.value());
+        }
+    });
+
+    srv.Get("/system/settings", [=](const httplib::Request& req, httplib::Response& res) 
+    {
+        std::stringstream ss;
+        ss << std::setw(4) << configService.GetConfigJson();
+        res.body = ss.str();
+    });
+
+    srv.Get("/scenes", [=](const httplib::Request& req, httplib::Response& res) 
+    {
+        json scenes = json::array();
+        for (const auto& scene : baseScenes)
+        {
+            scenes.push_back(scene->SceneName());
+        }
+        std::stringstream ss;
+        ss << std::setw(4) << scenes;
+        res.body = ss.str();
+    });
+
+    srv.Post(R"(/scenes/([a-zA-Z0-9]+)/show)", [=](const httplib::Request& req, httplib::Response& res) 
+    {
+        auto scene = getSceneByName(req.matches[1].str());
+        if (scene == nullptr)
+        {
+            res.status = 404;
+            res.body = fmt::format("The scene {} was not found.", req.matches[1].str());
+            return;
+        }
+        showScene(scene->SceneName());
+    });
+}
+
 int main(int argc, char *argv[])
 {
-    configService.Init();
-
     // Subscribe to signal interrupts
     signal(SIGTERM, InterruptHandler);
     signal(SIGINT, InterruptHandler);
 
+    // Init the config service here (since doing it in static init is disallowed)
+    // and because lots of components rely on its basic vars being set
+    configService.Init();
+
+    std::string defaultScene = DEFAULT_SCENE_NAME;
+    int fpsLimit = DEFAULT_FPS;
+    
+    // Subscribe to settings changes (this also runs the lambda once before subscribing)
+    configService.Subscribe([&](std::string setting)
+    {
+        configService.UpdateIfChanged(defaultScene, setting, "defaultScene", DEFAULT_SCENE_NAME);
+        
+        if (configService.UpdateIfChanged(fpsLimit, setting, "fpsLimit", DEFAULT_FPS))
+        {
+            expectedFrameTime = std::chrono::high_resolution_clock::duration(
+            std::chrono::nanoseconds((int)(1.0/(double)fpsLimit * 1000000000.0))    );
+        }
+    });
+
     // Add the HTTP service to serve web requests
     HttpService httpService(configService);
+    setupSystemHttpEndpoints(httpService.Server());
 
     // Init the astro / NOVAS lib
     AstronomyService astronomyService(configService);
@@ -272,18 +303,18 @@ int main(int argc, char *argv[])
     ConfigCodeScene configScene(configService, httpService);
     PhysicsScene physicsScene(configService);
 
-    addScene(&debugScene);
-    addScene(&solarScene);
-    addScene(&lightScene);
-    addScene(&mapTimeScene);
-    addScene(&weatherScene);
-    addScene(&configScene);
-    addScene(&physicsScene);
+    addScene(&debugScene, httpService);
+    addScene(&solarScene, httpService);
+    addScene(&lightScene, httpService);
+    addScene(&mapTimeScene, httpService);
+    addScene(&weatherScene, httpService);
+    addScene(&configScene, httpService);
+    addScene(&physicsScene, httpService);
 
-    // Make sure the default scene is first
+    
     for (int i=0; i < baseScenes.size(); i++)
     {
-        if (baseScenes[i]->SceneName() == configService.defaultScene)
+        if (baseScenes[i]->SceneName() == defaultScene)
         {
             if (i != 0)
             {
@@ -321,50 +352,11 @@ int main(int argc, char *argv[])
     UsbButton usbButton;
     addButton(usbButton);
 #endif
-
-    //   int buttonAction = 0;
-    //   std::vector<std::string> buttonActions;
-
-    //   for (const auto& scene : baseScenes)
-    //   {
-    //     buttonActions.push_back(fmt::format("base layer {}", scene->SceneName()));
-    //   }
-    //   buttonActions.push_back("sleep");
-    //   buttonActions.push_back("reset");
-
     auto thisFrameComplete = std::chrono::high_resolution_clock::now();
     auto lastFrameComplete = std::chrono::high_resolution_clock::now();
-    auto expectedFrameTime = std::chrono::high_resolution_clock::duration(std::chrono::nanoseconds(16666667));
-
     // Start the main render loop!
     while (!interrupt_received && !internal_exit)
     {
-        // Handle input events
-        //for (auto button : inputButtons)
-        //{
-            //   while(true)
-            //   {
-            //     auto action = button->PopAction();
-            //     if (action == ButtonAction::None)
-            //     {
-            //       break;
-            //     }
-            //     else if (action == ButtonAction::Tap)
-            //     {
-            //       //executeCommand("Button", buttonActions[buttonAction].c_str(), configService);
-            //       buttonAction = (buttonAction + 1) % buttonActions.size();
-            //     }
-            //     else if (action == ButtonAction::Hold)
-            //     {
-            //       //executeCommand("Button", "sleep", configService);
-            //     }
-            //     else if (action == ButtonAction::Exit)
-            //     {
-            //       internal_exit = true;
-            //     }
-            //   }
-        //}
-
         // Update/Draw the map
         if (sleeping)
         {
@@ -399,12 +391,14 @@ int main(int argc, char *argv[])
 
             display.Update();
 
-            // Regulate framerate to cap at 60 FPS
+            // Regulate framerate
             thisFrameComplete = std::chrono::high_resolution_clock::now();
             std::this_thread::sleep_until(lastFrameComplete + expectedFrameTime);
             lastFrameComplete = thisFrameComplete;
         }
     }
+
+    configService.SaveConfig();
 
     if (interrupt_received)
     {

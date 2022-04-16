@@ -109,8 +109,8 @@ void GfxProgram::setCameraFromPixelTransform()
 
   auto xform = Transform3D::FromTranslationAndScale(    
     -1, 1, 0, 
-    2.0f / (float)config.width, 
-    -2.0f / (float)config.height, 
+    2.0f / (float)config.width(), 
+    -2.0f / (float)config.height(), 
     1.0f / 1000.0f );
 
   GLint loc = glGetUniformLocation(Id, "uCameraFromPixelTransform");

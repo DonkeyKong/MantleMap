@@ -8,11 +8,14 @@ SolarScene::SolarScene(ConfigService& map, AstronomyService& astro) : Scene(map,
   _solarLine(map), _horizonLine(map), _sunCircle(map), _lunarLine(map), _moonCircle(map),
   _sunriseLabel(map), _sunsetLabel(map)
 {   
-  _showMoon = map.GetConfigValue("solarShowMoon", true);
+    map.Subscribe([&](std::string eventStr)
+    {
+        map.UpdateIfChanged(_showMoon, eventStr, "solarShowMoon", true);
+    });
   
-  _vScale = (double)map.height / 180.0 * 0.9;
-  _vOffset = (double)map.height * 0.05;
-  _hScale = (double)map.width;
+  _vScale = (double)map.height() / 180.0 * 0.9;
+  _vOffset = (double)map.height() * 0.05;
+  _hScale = (double)map.width();
   
   _moonColorDay  = {0.3f,0.3f,0.3f,1.0f};
   _moonColorNight  = {0.6f,0.6f,0.6f,1.0f};
@@ -103,7 +106,7 @@ void SolarScene::updateOverride()
     std::vector<Vertex> points;
     double sunriseJulianGuess = 0;
     double sunsetJulianGuess = 0;
-    for (double t = _startJulian; t <= (_endJulian+0.05); t += (4.0/(double)config.width))
+    for (double t = _startJulian; t <= (_endJulian+0.05); t += (4.0/(double)config.width()))
     {
       double latitudeDeg, longitudeDeg;
       _astro.GetSolarPoint(t, latitudeDeg, longitudeDeg);
@@ -173,7 +176,7 @@ void SolarScene::updateOverride()
     
     // Create the moon polyline
     std::vector<Vertex> points; 
-    for (double t = _startJulianMoon; t <= (_endJulianMoon+0.05); t += (4.0/(double)config.width))
+    for (double t = _startJulianMoon; t <= (_endJulianMoon+0.05); t += (4.0/(double)config.width()))
     {
       double latitudeDeg, longitudeDeg;
       _astro.GetLunarPoint(t, latitudeDeg, longitudeDeg);
@@ -250,15 +253,15 @@ void SolarScene::drawOverride()
   if (_showMoon) 
   {
     _moonCircle.Draw();
-    _moonCircle.Move(-config.width, 0);
+    _moonCircle.Move(-config.width(), 0);
     _moonCircle.Draw();
-    _moonCircle.Move(2.0f * config.width, 0);
+    _moonCircle.Move(2.0f * config.width(), 0);
     _moonCircle.Draw();
   }
   
   _sunCircle.Draw();
-  _sunCircle.Move(-config.width, 0);
+  _sunCircle.Move(-config.width(), 0);
   _sunCircle.Draw();
-  _sunCircle.Move(2.0f * config.width, 0);
+  _sunCircle.Move(2.0f * config.width(), 0);
   _sunCircle.Draw();
 }

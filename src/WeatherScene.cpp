@@ -71,7 +71,7 @@ WeatherScene::WeatherScene(ConfigService& config) : Scene(config, SceneType::Ove
         
         // Request the point info for home zone of home
         auto pointsJson = getJsonPayload(noaa, 
-          fmt::format("/points/{0:.4f},{1:.4f}", config.homeLatitudeDeg, config.homeLongitudeDeg));
+          fmt::format("/points/{0:.4f},{1:.4f}", config.homeLatitudeDeg(), config.homeLongitudeDeg()));
 
         std::string stationsURL = pointsJson["properties"]["observationStations"];
         _noaaTemp = "Pts";
@@ -86,7 +86,7 @@ WeatherScene::WeatherScene(ConfigService& config) : Scene(config, SceneType::Ove
         {
           double statLat = station["geometry"]["coordinates"][1];
           double statLon = station["geometry"]["coordinates"][0];
-          double dist = AstronomyService::GpsDistKm(config.homeLatitudeDeg, config.homeLongitudeDeg,
+          double dist = AstronomyService::GpsDistKm(config.homeLatitudeDeg(), config.homeLongitudeDeg(),
                                 statLat, statLon);
           std::string id = station["properties"]["stationIdentifier"];
           

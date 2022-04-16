@@ -1,11 +1,3 @@
-//
-//  NaturalEarthII.cpp
-//  MantlemapProjectionTest
-//
-//  Created by Zack Schilling on 1/12/19.
-//  Copyright © 2019 Bubbulon. All rights reserved.
-//
-
 #include "NaturalEarth.hpp"
 #include "ConfigService.hpp"
 
@@ -29,9 +21,15 @@ double NaturalEarth::C4 = 11 * B4;
 double NaturalEarth::EPS = 1e-11;
 double NaturalEarth::MAX_Y = 0.8707 * 0.52 * M_PI;
 
-NaturalEarth::NaturalEarth(ConfigService& map) : _map(map)
+NaturalEarth::NaturalEarth(ConfigService& config) : config(config)
 {
-  
+    // These settings will not be changed live so we can safely read them just once
+    marginTop = config.GetConfigValue("marginTop", 1);
+    marginBottom = config.GetConfigValue("marginBottom", 2);
+    marginLeft = config.GetConfigValue("marginLeft", 7);
+    marginRight = config.GetConfigValue("marginRight", 8);
+    latitudeCenterDeg = config.GetConfigValue("latitudeCenterDeg", 0.0f);
+    longitudeCenterDeg = config.GetConfigValue("longitudeCenterDeg", 156.0f);
 }
 
 void NaturalEarth::map(const Point2D& in, Point2D& out)
@@ -40,7 +38,7 @@ void NaturalEarth::map(const Point2D& in, Point2D& out)
     double phi4 = phi2 * phi2;
     
     // Apply offset and normalize angles
-    double x = in.x - (_map.longitudeCenterDeg * (M_PI / 180.0));
+    double x = in.x - (longitudeCenterDeg * (M_PI / 180.0));
     while (x < -M_PI)
       x += M_PI * 2.0;
     while (out.x > M_PI)
@@ -89,7 +87,7 @@ bool NaturalEarth::mapInverse(Point2D in, Point2D& out)
     bool wrapping = out.x > M_PI || out.x < -M_PI || out.y > M_PI || out.y < -M_PI;
     
     // Add offset
-    out.x += (_map.longitudeCenterDeg * (M_PI / 180.0));
+    out.x += (longitudeCenterDeg * (M_PI / 180.0));
     
     // Normalize angles
     while (out.x < -M_PI)
@@ -107,25 +105,25 @@ bool NaturalEarth::mapInverse(Point2D in, Point2D& out)
 
 bool NaturalEarth::mapInverse(int x, int y, Point2D& out)
 {
-  double scaledFromPixel = (MAX_Y*2.0) / (double)(_map.height - _map.marginTop - _map.marginBottom + 1);
-  double max_x = ((double)(_map.width-_map.marginLeft-_map.marginRight) * scaledFromPixel) / 2.0;
+  double scaledFromPixel = (MAX_Y*2.0) / (double)(config.height() - marginTop - marginBottom + 1);
+  double max_x = ((double)(config.width()-marginLeft-marginRight) * scaledFromPixel) / 2.0;
    
   Point2D scaled;
-  scaled.x = (scaledFromPixel * (x-_map.marginLeft)) - max_x;
-  scaled.y = MAX_Y - (scaledFromPixel * (y-_map.marginTop));
+  scaled.x = (scaledFromPixel * (x-marginLeft)) - max_x;
+  scaled.y = MAX_Y - (scaledFromPixel * (y-marginTop));
   return mapInverse(scaled, out);
 }
 
 ImageRGBA NaturalEarth::getInvLookupTable()
 {
-  ImageRGBA lut(_map.width , _map.height);
+  ImageRGBA lut(config.width() , config.height());
 
   Point2D lonLat;
-  for (int y=0; y < _map.height; y++)
+  for (int y=0; y < config.height(); y++)
   {
-    for (int x=0; x < _map.width; x++)
+    for (int x=0; x < config.width(); x++)
     {
-      int i = (y * _map.width + x)*4;
+      int i = (y * config.width() + x)*4;
       bool valid = mapInverse(x, y, lonLat);
 
       float v1 = cos(lonLat.x)*cos(lonLat.y);

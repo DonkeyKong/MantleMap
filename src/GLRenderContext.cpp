@@ -109,7 +109,7 @@ void GLRenderContext::initGL()
   glBindTexture(GL_TEXTURE_2D, RenderedTexture);
 
   // Give an empty image to OpenGL ( the last "0" )
-  glTexImage2D(GL_TEXTURE_2D, 0 ,GL_RGBA, _map.width, _map.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0 ,GL_RGBA, _map.width(), _map.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
   // Poor filtering. Needed !
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -128,5 +128,5 @@ void GLRenderContext::BeginDraw()
 
   // Bind to the frame buffer
   glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
-  glViewport(0,0,_map.width,_map.height); // Render on the whole framebuffer, complete from the lower left corner to the upper right
+  glViewport(0,0,_map.width(),_map.height()); // Render on the whole framebuffer, complete from the lower left corner to the upper right
 }

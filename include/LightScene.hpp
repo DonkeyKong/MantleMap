@@ -32,6 +32,9 @@ private:
     double sunCurrentLon;
     bool overrideSunLocation;
 
+    float sunPropigationDeg;
+    bool lightAdjustEnabled;
+
     NaturalEarth projection;
     AstronomyService& astro;
 };

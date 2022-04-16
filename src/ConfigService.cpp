@@ -17,12 +17,12 @@ static const std::string CONFIG_PATH = "MantleMapConfig.json";
 #endif
 static const std::string DEFAULT_SCENES_PATH = "scenes";
 static const std::string DEFAULT_EPHEMERIDES_PATH = "linux_p1550p2650.430";
-static const std::string DEFAULT_SCENE_NAME = "Solar";
 
+const std::string ConfigService::AllSettings = "*";
 
 ConfigService::ConfigService()
 {
-
+    _initDone = false;
 }
 
 ConfigService::~ConfigService()
@@ -32,33 +32,72 @@ ConfigService::~ConfigService()
 
 void ConfigService::Init()
 {
-    _settingsReadOK = readConfig();
+    if (!_initDone)
+    {
+        _settingsReadOK = readConfig();
 
-    // LED matrix settings
-    width = GetConfigValue("width", 192);
-    height = GetConfigValue("height", 96);
+        sceneResourcePath_ = GetConfigValue("sceneResourcePath", DEFAULT_SCENES_PATH);
+        ephemeridesPath_ = GetConfigValue("ephemeridesPath", DEFAULT_EPHEMERIDES_PATH);
+        width_ = GetConfigValue("width", 192);
+        height_ = GetConfigValue("height", 96);
+        homeLatitudeDeg_ = GetConfigValue("homeLatitudeDeg", 0.0);
+        homeLongitudeDeg_ = GetConfigValue("homeLongitudeDeg", 0.0);
 
-    // Sunlight map settings
-    marginTop = GetConfigValue("marginTop", 1);
-    marginBottom = GetConfigValue("marginBottom", 2);
-    marginLeft = GetConfigValue("marginLeft", 7);
-    marginRight = GetConfigValue("marginRight", 8);
-    latitudeCenterDeg = GetConfigValue("latitudeCenterDeg", 0.0f);
-    longitudeCenterDeg = GetConfigValue("longitudeCenterDeg", 156.0f);
-    sunPropigationDeg = GetConfigValue("sunPropigationDeg", 80.0f);
+        SaveConfig();
+        _initDone = true;
+    }
 
-    // Home location
-    homeLatitudeDeg = GetConfigValue("homeLatitudeDeg", 0.0);
-    homeLongitudeDeg = GetConfigValue("homeLongitudeDeg", 0.0);
+    OnSettingChanged(AllSettings);
+}
 
-    // Render settings
-    lightAdjustEnabled = GetConfigValue("lightAdjustEnabled", true);
-    fpsLimit = GetConfigValue("fpsLimit", 60);
+int ConfigService::width() const
+{
+    return width_;
+}
 
-    // System settings
-    sceneResourcePath = GetConfigValue("sceneResourcePath", DEFAULT_SCENES_PATH);
-    ephemeridesPath = GetConfigValue("ephemeridesPath", DEFAULT_EPHEMERIDES_PATH);
-    defaultScene = GetConfigValue("defaultScene", DEFAULT_SCENE_NAME);
+int ConfigService::height() const
+{
+    return height_;
+}
+
+double ConfigService::homeLatitudeDeg() const
+{
+    return homeLatitudeDeg_;
+}
+
+double ConfigService::homeLongitudeDeg() const
+{
+    return homeLongitudeDeg_;
+}
+
+std::string ConfigService::sceneResourcePath() const
+{
+    return sceneResourcePath_;
+}
+
+std::string ConfigService::ephemeridesPath() const
+{
+    return ephemeridesPath_;
+}
+const json& ConfigService::GetConfigJson() const
+{
+    return _config;
+}
+
+template <>
+void ConfigService::SetConfigValue(const std::string& key, const json& value)
+{
+    try
+    {
+    if (!_config.contains(key) || _config[key] != value)
+    {
+        _config[key] = value;
+        if (_initDone) OnSettingChanged(key);
+    }
+    }
+    catch (...)
+    {
+    }
 }
 
 void ConfigService::SaveConfig()
@@ -66,9 +105,9 @@ void ConfigService::SaveConfig()
   if (_settingsReadOK) writeConfig();
 }
 
-std::string ConfigService::GetResourcePath(std::string resourceName)
+std::string ConfigService::GetSharedResourcePath(const std::string& resourceName) const
 {
-  auto filePath = std::filesystem::path(sceneResourcePath) / "Shared" / resourceName;
+  auto filePath = std::filesystem::path(sceneResourcePath_) / "Shared" / resourceName;
   if (std::filesystem::exists(filePath))
   {
     return filePath;
@@ -112,7 +151,7 @@ bool ConfigService::readConfig()
     _config = json::object();
     return false;
   }	
-  
+
   return true;
 }
 

@@ -13,12 +13,12 @@ PhysicsScene::PhysicsScene(ConfigService& config) : Scene(config, SceneType::Bas
     srand(time(nullptr));
 
     bgFill.AddPoint({{0,0,0},{}});
-    bgFill.AddPoint({{-config.width / 2.0f, config.height / 2.0f,0},{}});
-    bgFill.AddPoint({{config.width / 2.0f, config.height / 2.0f,0},{}});
-    bgFill.AddPoint({{config.width / 2.0f, -config.height / 2.0f,0},{}});
-    bgFill.AddPoint({{-config.width / 2.0f, -config.height / 2.0f,0},{}});
-    bgFill.AddPoint({{-config.width / 2.0f, config.height / 2.0f,0},{}});
-    bgFill.SetLocation(config.width / 2.0f, config.height / 2.0f);
+    bgFill.AddPoint({{-config.width() / 2.0f, config.height() / 2.0f,0},{}});
+    bgFill.AddPoint({{config.width() / 2.0f, config.height() / 2.0f,0},{}});
+    bgFill.AddPoint({{config.width() / 2.0f, -config.height() / 2.0f,0},{}});
+    bgFill.AddPoint({{-config.width() / 2.0f, -config.height() / 2.0f,0},{}});
+    bgFill.AddPoint({{-config.width() / 2.0f, config.height() / 2.0f,0},{}});
+    bgFill.SetLocation(config.width() / 2.0f, config.height() / 2.0f);
     bgFill.SetColor({0,0,0,0.03});
 }
 
@@ -29,8 +29,8 @@ void PhysicsScene::showOverride()
     // Initialize the list of particles
     for (int i=0; i < points.size(); i++)
     {
-        points[i].pos = Random( Position{-(float)config.width / 2.0f, -(float)config.height / 2.0f, -(float)config.width / 2.0f}, 
-                                Position{ (float)config.width / 2.0f,  (float)config.height / 2.0f,  (float)config.width / 2.0f} );
+        points[i].pos = Random( Position{-(float)config.width() / 2.0f, -(float)config.height() / 2.0f, -(float)config.width() / 2.0f}, 
+                                Position{ (float)config.width() / 2.0f,  (float)config.height() / 2.0f,  (float)config.width() / 2.0f} );
         points[i].size = Random(0.1f, 1.5f);
         points[i].mass = pow(points[i].size, 2.0f) * 8.0f; //Random(10.0f, 20.0f);
         points[i].velocity = Random(Position{-1.0f, -1.0f, -1.0f}, Position{1.0f, 1.0f, 1.0f});
@@ -76,7 +76,7 @@ void PhysicsScene::drawOverride()
         program->SetTint({0.5, 0.5, 1.0, 1.0});
 
         float rY = ((float)updateCounter / 6000.0f) * M_PI * 2.0f;
-        program->SetModelTransform( Transform3D::FromTranslation(config.width/2.0f, config.height/2.0f, 0.0f) * 
+        program->SetModelTransform( Transform3D::FromTranslation(config.width()/2.0f, config.height()/2.0f, 0.0f) * 
                                     Transform3D::FromEuler(0, rY, 0) );
 
         glVertexAttribPointer(

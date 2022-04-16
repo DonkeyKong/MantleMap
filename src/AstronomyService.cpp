@@ -13,7 +13,7 @@ AstronomyService::AstronomyService(ConfigService& configService) :
   config(configService)
 {
   char workpath[1024];
-  strncpy(workpath, configService.ephemeridesPath.c_str(), 1023);
+  strncpy(workpath, configService.ephemeridesPath().c_str(), 1023);
   
   cat_entry dummy_star;
   char ttl[85];
@@ -108,8 +108,8 @@ short int AstronomyService::transit_coord(time_parameters_t* tp, object* obj,
 float AstronomyService::GetAngleDistInDegFromHomeTangent(double latDeg, double lonDeg)
 {
   // convert to radians
-  double homeLat = config.homeLatitudeDeg * (M_PI / 180.0);
-  double homeLon = config.homeLongitudeDeg * (M_PI / 180.0);
+  double homeLat = config.homeLatitudeDeg() * (M_PI / 180.0);
+  double homeLon = config.homeLongitudeDeg() * (M_PI / 180.0);
   double lat = latDeg * (M_PI / 180.0);
   double lon = lonDeg * (M_PI / 180.0);
   
@@ -129,13 +129,10 @@ float AstronomyService::GetAngleDistInDegFromHomeTangent(double latDeg, double l
 }
 
 float AstronomyService::GetLightBoost(double sunLatDeg, double sunLonDeg)
-{
-  if (!config.lightAdjustEnabled)
-    return 0.0f;
-    
+{    
   // convert to radians
-  double homeLat = config.homeLatitudeDeg * (M_PI / 180.0);
-  double homeLon = config.homeLongitudeDeg * (M_PI / 180.0);
+  double homeLat = config.homeLatitudeDeg() * (M_PI / 180.0);
+  double homeLon = config.homeLongitudeDeg() * (M_PI / 180.0);
   double sunLat = sunLatDeg * (M_PI / 180.0);
   double sunLon = sunLonDeg * (M_PI / 180.0);
   double sunProp = 70 * (M_PI / 180.0);

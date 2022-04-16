@@ -20,14 +20,14 @@ using rgb_matrix::StreamReader;
 
 struct DisplayDevice::Impl
 {
-    ConfigService& map;
+    ConfigService& config;
     RGBMatrix* matrix;
     FrameCanvas* offscreen_canvas;
     ImageRGBA CPUTextureCache;
 
-    Impl(ConfigService& map) : map(map), CPUTextureCache(map.width, map.height)
+    Impl(ConfigService& config) : config(config), CPUTextureCache(config.width(), config.height())
     {
-        // Mantle map parameters
+        // Config parameters
         int cols = 64;
         int rows = 32;
         int chainLength = 3;
@@ -69,15 +69,15 @@ struct DisplayDevice::Impl
     void DrawFromGLFramebuffer()
     {
         // Copy out to CPU
-        glReadPixels(0,0, map.width, map.height, GL_RGBA, GL_UNSIGNED_BYTE,  CPUTextureCache.data());
+        glReadPixels(0,0, config.width(), config.height(), GL_RGBA, GL_UNSIGNED_BYTE,  CPUTextureCache.data());
         
         // Copy into offscreen LED Matrix buffer
         uint8_t* img =  CPUTextureCache.data();
-        for (int y=0; y < map.height; y++)
+        for (int y=0; y < config.height(); y++)
         {
-            for (int x=0; x < map.width; x++)
+            for (int x=0; x < config.width(); x++)
             {
-                offscreen_canvas->SetPixel(x, (map.height-1)-y, img[0],img[1], img[2]);
+                offscreen_canvas->SetPixel(x, (config.height()-1)-y, img[0],img[1], img[2]);
                 img += 4;
             }
         }
@@ -86,9 +86,9 @@ struct DisplayDevice::Impl
     }
 };
 
-DisplayDevice::DisplayDevice(ConfigService& map)
+DisplayDevice::DisplayDevice(ConfigService& config)
 {
-    pImpl_ = std::make_unique<Impl>(map);
+    pImpl_ = std::make_unique<Impl>(config);
 }
 
 DisplayDevice::~DisplayDevice()
@@ -143,12 +143,12 @@ static const EGLint context_attributes[] =
 // This display device opens an OS native window and renders a preview to the display
 struct DisplayDevice::Impl : public InputButton
 {
-    ConfigService& map;
+    ConfigService& config;
     OSWindow* window;
     bool running = true;
     EGLSurface surface;
     EGLDisplay display;
-    EGLConfig config;
+    EGLConfig glConfig;
     EGLContext context;
     ImageRGBA CPUTextureCache;
     std::unique_ptr<GfxProgram> program;
@@ -157,11 +157,11 @@ struct DisplayDevice::Impl : public InputButton
     GLint coordinateAttrib;
     std::vector<float> mesh;
 
-    Impl(ConfigService& map) : map(map), CPUTextureCache(map.width, map.height)
+    Impl(ConfigService& config) : config(config), CPUTextureCache(config.width(), config.height())
     {
         // Create the OS window
         window = OSWindow::New();
-        if (!window->initialize(map.defaultScene, map.width * 5, map.height * 5))
+        if (!window->initialize("MantleMap Simulator", config.width() * 5, config.height() * 5))
         {
             throw std::runtime_error("Couldn't open OS window!");
         }
@@ -173,20 +173,20 @@ struct DisplayDevice::Impl : public InputButton
         EGLBoolean result;
         
         display = eglGetDisplay(window->getNativeDisplay());
-        result = eglChooseConfig(display, attribute_list, &config, 1, &num_config);
+        result = eglChooseConfig(display, attribute_list, &glConfig, 1, &num_config);
         if (result == EGL_FALSE)
         {
             throw std::runtime_error("Couldn't create config!");
         }
         
-        surface = eglCreateWindowSurface(display, config, window->getNativeWindow(), nullptr);
+        surface = eglCreateWindowSurface(display, glConfig, window->getNativeWindow(), nullptr);
         if (surface == EGL_NO_SURFACE)
         {
             throw std::runtime_error("Couldn't create surface!");
         }
 
         // Create an OpenGL rendering context
-        context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attributes);
+        context = eglCreateContext(display, glConfig, EGL_NO_CONTEXT, context_attributes);
         if (context == EGL_NO_CONTEXT)
         {
             throw std::runtime_error("Couldn't create context!");
@@ -197,9 +197,9 @@ struct DisplayDevice::Impl : public InputButton
 
         // Load and compile the image display shaders into a glsl program
         program = std::make_unique<GfxProgram>(
-            map, 
-            map.GetResourcePath("ledmatrixvertshader.glsl"), 
-            map.GetResourcePath("ledmatrixfragshader.glsl"),
+            config, 
+            config.GetSharedResourcePath("ledmatrixvertshader.glsl"), 
+            config.GetSharedResourcePath("ledmatrixfragshader.glsl"),
             std::vector<std::string>());
         
         vertexAttrib = program->Attrib("aVertex");
@@ -212,9 +212,9 @@ struct DisplayDevice::Impl : public InputButton
         // Create the mesh for the image render
         //       X                  Y                   Z       U       V
         mesh = { 0.0f,              0.0f,               0.0f,   0.0f,   1.0f,
-                (float)map.width,   0.0f,               0.0f,   1.0f,   1.0f, 
-                0.0f,               (float)map.height,  0.0f,   0.0f,   0.0f,
-                (float)map.width,   (float)map.height,  0.0f,   1.0f,   0.0f  };
+                (float)config.width(),   0.0f,               0.0f,   1.0f,   1.0f, 
+                0.0f,               (float)config.height(),  0.0f,   0.0f,   0.0f,
+                (float)config.width(),   (float)config.height(),  0.0f,   1.0f,   0.0f  };
         
         print_if_glerror("Creating mesh for emulated display");
     }
@@ -249,7 +249,7 @@ struct DisplayDevice::Impl : public InputButton
     void update()
     {
         // Copy out render to CPU
-        glReadPixels(0,0, map.width, map.height, GL_RGBA, GL_UNSIGNED_BYTE,  CPUTextureCache.data());
+        glReadPixels(0,0, config.width(), config.height(), GL_RGBA, GL_UNSIGNED_BYTE,  CPUTextureCache.data());
 
         // Switch contexts to this display
         eglMakeCurrent(display, surface, surface, context);
@@ -259,7 +259,7 @@ struct DisplayDevice::Impl : public InputButton
 
         // Set the viewport
         float winRatio = (float)window->getWidth() /  (float)window->getHeight();
-        float mapRatio = (float)map.width /  (float)map.height;
+        float mapRatio = (float)config.width() /  (float)config.height();
 
         if ( winRatio > mapRatio ) // Wider than normal
         {
@@ -285,7 +285,7 @@ struct DisplayDevice::Impl : public InputButton
         program->SetUniform("uTexture", 0);
         program->SetUniform("uLocation", 0.0f, 0.0f);
         program->SetUniform("uColor", 1.0f, 1.0f, 1.0f, 1.0f);
-        program->SetUniform("uTextureSize", (float)map.width, (float)map.height);
+        program->SetUniform("uTextureSize", (float)config.width(), (float)config.height());
 
         glVertexAttribPointer(
                       vertexAttrib,      // The attribute ID
@@ -335,9 +335,9 @@ struct DisplayDevice::Impl : public InputButton
     }
 };
 
-DisplayDevice::DisplayDevice(ConfigService& map) 
+DisplayDevice::DisplayDevice(ConfigService& config) 
 {
-    pImpl_ = std::make_unique<Impl>(map);
+    pImpl_ = std::make_unique<Impl>(config);
 }
 
 DisplayDevice::~DisplayDevice() 

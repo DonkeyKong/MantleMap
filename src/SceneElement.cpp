@@ -19,11 +19,11 @@ void SceneElement::Draw()
 // Load an image using libpng and insert it straight into a texture
 std::unique_ptr<GfxTexture> SceneElement::loadTexture(std::string resourceName)
 {
-    return std::make_unique<GfxTexture>(map.GetResourcePath(resourceName));
+    return std::make_unique<GfxTexture>(map.GetSharedResourcePath(resourceName));
 }
 
 // Load a vert and frag shader and create a program with them
 std::unique_ptr<GfxProgram> SceneElement::loadProgram(std::string vertShaderName, std::string fragShaderName, std::vector<std::string> features)
 {
-    return std::make_unique<GfxProgram>(map, map.GetResourcePath(vertShaderName), map.GetResourcePath(fragShaderName), features);
+    return std::make_unique<GfxProgram>(map, map.GetSharedResourcePath(vertShaderName), map.GetSharedResourcePath(fragShaderName), features);
 }

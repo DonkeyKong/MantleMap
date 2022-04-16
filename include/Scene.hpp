@@ -7,6 +7,7 @@
 #include "SceneElement.hpp"
 #include "ConfigService.hpp"
 #include "TimeService.hpp"
+#include "HttpService.hpp"
 
 // #include "EGL/egl.h"
 // #include "EGL/eglplatform.h"
@@ -38,6 +39,8 @@ class Scene
     
     // What is the name of the folder inside "Scenes" where this scene's resouces are stored
     virtual const char* SceneName() = 0;
+
+    virtual void RegisterEndpoints(HttpService& http) final;
     
     // Get a resource for the scene, first looking in scenes/<name>, then in scenes/Shared
     virtual std::string GetResourcePath(std::string resourceName) final;
@@ -70,6 +73,7 @@ class Scene
   protected:
     // Overrides for subclasses to customize behavior
     virtual void initGLOverride();
+    virtual void registerEndpointsOverride(HttpService& http);
     virtual void drawOverride();
     virtual void updateOverride();
     virtual void showOverride();

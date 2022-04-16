@@ -54,7 +54,7 @@ static std::string getFirstExternalHostAddr()
 
 HttpService::HttpService(ConfigService& config) : config(config)
 {
-    std::filesystem::path webDir = std::filesystem::path(config.sceneResourcePath) / "Web";
+    std::filesystem::path webDir = std::filesystem::path(config.sceneResourcePath()) / "Web";
     for (const auto & entry : std::filesystem::directory_iterator(webDir))
     {
         if (entry.is_regular_file() && entry.path().extension() == ".html")
@@ -72,6 +72,7 @@ HttpService::HttpService(ConfigService& config) : config(config)
     setupCallbacks();
 
     // Figure out the port and bind address for the server
+    // These cannot change so no need to subscribe
     int port = config.GetConfigValue("httpServicePort", 80);
     std::string addr = config.GetConfigValue("httpServiceAddress", std::string("0.0.0.0"));
     
@@ -147,26 +148,6 @@ void HttpService::setupCallbacks()
     {
         res.set_content(web["index.html"], "text/html");
     });
-
-    srv->Post("/system/command", [=](const httplib::Request& req, httplib::Response& res) 
-    {
-        json payload = getRequestPayload(req);
-
-        if (payload.find("commandType") != payload.end() &&
-            payload.find("commandStr") != payload.end())
-        {
-            HttpCommand cmd
-            {
-                payload["commandType"] == "TextCommand" ? CommandType::TextCommand : CommandType::None,
-                payload["commandStr"]
-            };
-
-            {
-                auto lock = std::scoped_lock<std::mutex>(queueMutex);
-                commandQueue.push_back(cmd);
-            }
-        }
-    });
 }
 
 std::string HttpService::ListeningInterface()
@@ -174,19 +155,12 @@ std::string HttpService::ListeningInterface()
     return listeningInterface;
 }
 
-bool HttpService::ServerRunning()
+bool HttpService::Running()
 {
     return srv->is_running();
 }
 
-HttpCommand HttpService::PopCommand()
+httplib::Server& HttpService::Server()
 {
-    auto lock = std::scoped_lock<std::mutex>(queueMutex);
-    if (commandQueue.size() > 0)
-    {
-        auto cmd = commandQueue.back();
-        commandQueue.pop_back();
-        return cmd;
-    }
-    return { CommandType::None };
+    return *srv;
 }

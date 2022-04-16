@@ -13,13 +13,21 @@ LightScene::LightScene(ConfigService& config, AstronomyService& astro) :
   projection(config),
   astro(astro)
 {
-  sunCurrentLat = 0;
-  sunCurrentLon = 0;
-  sunTargetLat = 0;
-  sunTargetLon = 0;
-  sunPropAngleCurrent = 0;
-  overrideSunLocation = false;
-  sunPropAngleTarget = config.sunPropigationDeg;
+    // Sunlight map settings
+    config.Subscribe([&](std::string setting)
+    {
+        config.UpdateIfChanged(sunPropigationDeg, setting, "sunPropigationDeg", 80.0f);
+        config.UpdateIfChanged(lightAdjustEnabled, setting, "lightAdjustEnabled", true);
+    });
+
+    // Sunlight map animation vars
+    sunCurrentLat = 0;
+    sunCurrentLon = 0;
+    sunTargetLat = 0;
+    sunTargetLon = 0;
+    sunPropAngleCurrent = 0;
+    overrideSunLocation = false;
+    sunPropAngleTarget = sunPropigationDeg;
 }
 
 LightScene::~LightScene()
@@ -266,7 +274,7 @@ void LightScene::initGLOverride()
 void LightScene::resetOverride(bool animate)
 {
   overrideSunLocation = false;
-  sunPropAngleTarget = config.sunPropigationDeg;
+  sunPropAngleTarget = sunPropigationDeg;
   Update();
   
   // If we want to skip animations, force things instantly into the right place
@@ -306,7 +314,7 @@ void LightScene::drawOverride()
     {
         double lat, lon;
         astro.GetSolarPoint(TimeService::GetSceneTimeAsJulianDate(), lat, lon);
-        program->SetUniform("uLightBoost", astro.GetLightBoost(lat, lon));
+        program->SetUniform("uLightBoost", lightAdjustEnabled ? astro.GetLightBoost(lat, lon) : 0.0f);
     }
     
     program->SetUniform("uDrawSun", true );
