@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <linux/joystick.h>
 #include <atomic>
+#include <thread>
+#include <memory>
 
 /**
  * Reads a joystick event from the joystick device.
@@ -121,7 +123,7 @@ UsbButton::UsbButton()
         // flush
         while (pImpl_->buttonFd != -1 && read_event(pImpl_->buttonFd, &pImpl_->event) == 0);
 
-        thread = std::make_unique<std::thread>([&]()
+        pImpl_->thread = std::make_unique<std::thread>([&]()
         {
             while (!pImpl_->stopThread && pImpl_->buttonFd != -1)
             {
