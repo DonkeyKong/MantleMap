@@ -13,7 +13,6 @@ class ConfigCodeScene : public Scene
     ~ConfigCodeScene();
     
     const char* SceneName() override;
-    const char* SceneResourceDir() override;
     
 private:
     ImageView qrCode;

@@ -22,38 +22,43 @@ static const std::string DEFAULT_SCENE_NAME = "Solar";
 
 ConfigService::ConfigService()
 {
-  _settingsReadOK = readConfig();
-  
-  // LED matrix settings
-  width = GetConfigValue("width", 192);
-  height = GetConfigValue("height", 96);
-  
-  // Sunlight map settings
-  marginTop = GetConfigValue("marginTop", 1);
-  marginBottom = GetConfigValue("marginBottom", 2);
-  marginLeft = GetConfigValue("marginLeft", 7);
-  marginRight = GetConfigValue("marginRight", 8);
-  latitudeCenterDeg = GetConfigValue("latitudeCenterDeg", 0.0f);
-  longitudeCenterDeg = GetConfigValue("longitudeCenterDeg", 156.0f);
-  sunPropigationDeg = GetConfigValue("sunPropigationDeg", 80.0f);
-  
-  // Home location
-  homeLatitudeDeg = GetConfigValue("homeLatitudeDeg", 0.0);
-  homeLongitudeDeg = GetConfigValue("homeLongitudeDeg", 0.0);
-    
-  // Render settings
-  lightAdjustEnabled = GetConfigValue("lightAdjustEnabled", true);
-  fpsLimit = GetConfigValue("fpsLimit", 60);
-  
-  // System settings
-  sceneResourcePath = GetConfigValue("sceneResourcePath", DEFAULT_SCENES_PATH);
-  ephemeridesPath = GetConfigValue("ephemeridesPath", DEFAULT_EPHEMERIDES_PATH);
-  defaultScene = GetConfigValue("defaultScene", DEFAULT_SCENE_NAME);
+
 }
 
 ConfigService::~ConfigService()
 {
   
+}
+
+void ConfigService::Init()
+{
+    _settingsReadOK = readConfig();
+
+    // LED matrix settings
+    width = GetConfigValue("width", 192);
+    height = GetConfigValue("height", 96);
+
+    // Sunlight map settings
+    marginTop = GetConfigValue("marginTop", 1);
+    marginBottom = GetConfigValue("marginBottom", 2);
+    marginLeft = GetConfigValue("marginLeft", 7);
+    marginRight = GetConfigValue("marginRight", 8);
+    latitudeCenterDeg = GetConfigValue("latitudeCenterDeg", 0.0f);
+    longitudeCenterDeg = GetConfigValue("longitudeCenterDeg", 156.0f);
+    sunPropigationDeg = GetConfigValue("sunPropigationDeg", 80.0f);
+
+    // Home location
+    homeLatitudeDeg = GetConfigValue("homeLatitudeDeg", 0.0);
+    homeLongitudeDeg = GetConfigValue("homeLongitudeDeg", 0.0);
+
+    // Render settings
+    lightAdjustEnabled = GetConfigValue("lightAdjustEnabled", true);
+    fpsLimit = GetConfigValue("fpsLimit", 60);
+
+    // System settings
+    sceneResourcePath = GetConfigValue("sceneResourcePath", DEFAULT_SCENES_PATH);
+    ephemeridesPath = GetConfigValue("ephemeridesPath", DEFAULT_EPHEMERIDES_PATH);
+    defaultScene = GetConfigValue("defaultScene", DEFAULT_SCENE_NAME);
 }
 
 void ConfigService::SaveConfig()

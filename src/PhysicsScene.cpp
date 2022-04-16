@@ -47,11 +47,6 @@ const char* PhysicsScene::SceneName()
   return "Physics";
 }
 
-const char* PhysicsScene::SceneResourceDir()
-{
-  return "Physics";
-}
-
 
 static std::unique_ptr<GfxProgram> program;
 //static GLint vertexAttrib, colorAttrib, pointSizeAttrib;

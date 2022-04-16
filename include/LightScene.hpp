@@ -10,8 +10,6 @@ class LightScene : public Scene
     ~LightScene();
     
     const char* SceneName() override;
-    const char* SceneResourceDir() override;
-    bool Query(std::string query, std::string& response) override;
 
 protected:
     void initGLOverride() override;

@@ -11,7 +11,6 @@ class PhysicsScene : public Scene
     ~PhysicsScene();
     
     const char* SceneName() override;
-    const char* SceneResourceDir() override;
     
 private:
     virtual void initGLOverride() override;

@@ -43,10 +43,5 @@ ConfigCodeScene::~ConfigCodeScene()
 
 const char* ConfigCodeScene::SceneName()
 {
-  return "Config Code";
-}
-
-const char* ConfigCodeScene::SceneResourceDir()
-{
   return "ConfigCode";
 }

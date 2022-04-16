@@ -10,7 +10,6 @@ class MapTimeScene : public Scene
     ~MapTimeScene();
     
     const char* SceneName() override;
-    const char* SceneResourceDir() override;
     
 protected:
     void updateOverride() override;

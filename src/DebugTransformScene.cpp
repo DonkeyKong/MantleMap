@@ -44,11 +44,6 @@ DebugTransformScene::~DebugTransformScene()
 
 const char* DebugTransformScene::SceneName()
 {
-  return "Transfrom Debug Scene";
-}
-
-const char* DebugTransformScene::SceneResourceDir()
-{
   return "Debug";
 }
 

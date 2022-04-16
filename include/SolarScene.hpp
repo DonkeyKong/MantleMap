@@ -14,7 +14,6 @@ class SolarScene : public Scene
     ~SolarScene();
     
     const char* SceneName() override;
-    const char* SceneResourceDir() override;
 
 protected:
     void updateOverride() override;

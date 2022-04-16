@@ -19,3 +19,6 @@
 [submodule "deps/QR-Code-generator"]
 	path = deps/QR-Code-generator
 	url = https://github.com/nayuki/QR-Code-generator.git
+[submodule "deps/sigslot"]
+	path = deps/sigslot
+	url = https://github.com/palacaze/sigslot.git

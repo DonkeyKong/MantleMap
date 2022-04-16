@@ -18,11 +18,6 @@ void CmdDebugScene::initGLOverride()
 
 const char* CmdDebugScene::SceneName()
 {
-  return "Command Debug Overlay";
-}
-
-const char* CmdDebugScene::SceneResourceDir()
-{
   return "CmdDebug";
 }
 

@@ -54,11 +54,6 @@ SolarScene::~SolarScene()
 
 const char* SolarScene::SceneName()
 {
-  return "Solar Graph";
-}
-
-const char* SolarScene::SceneResourceDir()
-{
   return "Solar";
 }
 

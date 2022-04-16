@@ -10,7 +10,6 @@ class CmdDebugScene : public Scene
     ~CmdDebugScene();
     
     const char* SceneName() override;
-    const char* SceneResourceDir() override;
     
     void ShowCmd(std::string query);
     

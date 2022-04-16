@@ -31,6 +31,8 @@ class ConfigService
     // Constructor
     ConfigService();
     ~ConfigService();
+
+    void Init();
     
     // Resource path utils
     std::string GetResourcePath(std::string resourceName);

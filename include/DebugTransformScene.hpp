@@ -10,7 +10,6 @@ class DebugTransformScene : public Scene
     ~DebugTransformScene();
     
     const char* SceneName() override;
-    const char* SceneResourceDir() override;
 
 protected:
     void initGLOverride() override;

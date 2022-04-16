@@ -24,6 +24,9 @@ system_target(httplib) # Silence annoying warnings
 # fmt - Cmake, header-only
 add_subdirectory("deps/fmt")
 
+# sigslot - Cmake, header-only
+add_subdirectory("deps/sigslot")
+
 # json - Cmake, header-only
 set(JSON_BuildTests OFF)
 add_subdirectory("deps/json")
@@ -36,7 +39,7 @@ endif()
 
 # libpng, we build this ourselves because oh my god operating systems
 if (APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
-set(PNG_ARM_NEON on)
+set(PNG_ARM_NEON on CACHE bool "" FORCE)
 message("Apple Silicon detected, manually forcing ARM NEON optimizations for libpng")
 endif()
 set(PNG_SHARED OFF)
@@ -100,7 +103,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE include ${PNG_INCLUDE_DIR} deps/QR-Code-generator/cpp)
-target_link_libraries(${PROJECT_NAME} fmt nlohmann_json httplib png_static astro OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(${PROJECT_NAME} fmt nlohmann_json httplib png_static Pal::Sigslot astro OpenSSL::SSL OpenSSL::Crypto)
 
 add_custom_target(copy_scenes ALL)
 

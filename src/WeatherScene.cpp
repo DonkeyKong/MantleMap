@@ -158,11 +158,6 @@ const char* WeatherScene::SceneName()
   return "Weather";
 }
 
-const char* WeatherScene::SceneResourceDir()
-{
-  return "Weather";
-}
-
 void WeatherScene::updateOverride()
 {
   _tempLabel.SetText(_noaaTemp);

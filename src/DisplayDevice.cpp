@@ -219,6 +219,33 @@ struct DisplayDevice::Impl : public InputButton
         print_if_glerror("Creating mesh for emulated display");
     }
 
+    void processEvents(sigslot::signal<>& diconnectEvent)
+    {
+        window->messageLoop();
+        Event event;
+        while (window->popEvent(&event))
+        {
+            if (event.Type == Event::EVENT_CLOSED)
+            {
+                diconnectEvent();
+            }
+            else if (event.Type == Event::EVENT_KEY_PRESSED)
+            {
+                switch (event.Key.Code)
+                {
+                    case KEY_ESCAPE:
+                        diconnectEvent();
+                        break;
+                    case KEY_SPACE:
+                        OnTap();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
     void update()
     {
         // Copy out render to CPU
@@ -289,50 +316,24 @@ struct DisplayDevice::Impl : public InputButton
         eglSwapBuffers(display, surface);
     }
 
+    void clear()
+    {
+        // Switch contexts to this display
+        eglMakeCurrent(display, surface, surface, context);
+
+        glClearColor(0.1,0.1,0.5,1);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        eglSwapBuffers(display, surface);
+    }
+
     ~Impl()
     {
         running = false;
         if (window != nullptr && window->valid())
             window->destroy();
     }
-
-    virtual ButtonAction PopAction() override
-    {
-        if (running)
-        {
-            Event event;
-            if (window->popEvent(&event))
-            {
-                if (event.Type == Event::EVENT_CLOSED)
-                {
-                    return ButtonAction::Exit;
-                }
-                
-                if (event.Type == Event::EVENT_KEY_PRESSED)
-                {
-                    switch (event.Key.Code)
-                    {
-                        case KEY_ESCAPE:
-                            return ButtonAction::Exit;
-                        case KEY_SPACE:
-                            return ButtonAction::Tap;
-                        default:
-                            return ButtonAction::Unsupported;
-                    }
-                }
-
-                return ButtonAction::Unsupported;
-            }
-            else
-            {
-                window->messageLoop();
-            }
-        }
-        return ButtonAction::None;
-    }
 };
-
-
 
 DisplayDevice::DisplayDevice(ConfigService& map) 
 {
@@ -350,12 +351,14 @@ InputButton* DisplayDevice::GetInputButton()
 
 void DisplayDevice::Update() 
 {
+    pImpl_->processEvents(OnDisconnect);
     pImpl_->update();
 }
 
 void DisplayDevice::Clear() 
 {
-    // no such thing
+    pImpl_->processEvents(OnDisconnect);
+    pImpl_->clear();
 }
 
 #endif

@@ -22,11 +22,6 @@ MapTimeScene::~MapTimeScene()
 
 const char* MapTimeScene::SceneName()
 {
-  return "map Time Overlay";
-}
-
-const char* MapTimeScene::SceneResourceDir()
-{
   return "MapTime";
 }
 

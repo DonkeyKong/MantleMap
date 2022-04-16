@@ -23,7 +23,7 @@ Scene::~Scene()
 
 std::string Scene::GetResourcePath(std::string resourceName)
 {
-  auto filePath = std::filesystem::path(config.sceneResourcePath) / SceneResourceDir() / resourceName;
+  auto filePath = std::filesystem::path(config.sceneResourcePath) / SceneName() / resourceName;
   if (std::filesystem::exists(filePath))
   {
     return filePath;
@@ -113,7 +113,7 @@ void Scene::Draw()
   }
 }
 
-void Scene::BaseSceneChanged(std::string baseSceneName)
+void Scene::OnSceneChanged(std::string baseSceneName)
 {
   BaseSceneName = baseSceneName;
   baseSceneChangedOverride(BaseSceneName);
@@ -167,12 +167,6 @@ bool Scene::Visible()
 SceneType Scene::GetSceneType()
 {
   return _sceneType;
-}
-
-bool Scene::Query(std::string query, std::string& response)
-{
-  // By default don't accept any queries
-  return false;
 }
 
 // Load an image using libpng and insert it straight into a texture

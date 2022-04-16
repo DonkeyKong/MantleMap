@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <linux/joystick.h>
+#include <atomic>
 
 /**
  * Reads a joystick event from the joystick device.
@@ -19,19 +20,19 @@ int read_event(int fd, struct js_event *event)
     int rv;
     struct timeval timeout;
     timeout.tv_sec = 0;
-    timeout.tv_usec = 10;
-    
-    FD_ZERO(&set); /* clear the set */
+    timeout.tv_usec = 50000;
+
+    FD_ZERO(&set);    /* clear the set */
     FD_SET(fd, &set); /* add our file descriptor to the set */
     rv = select(fd + 1, &set, NULL, NULL, &timeout);
-    
-    if(rv == -1)
-      return -1;
-    else if(rv == 0)
-      return -1;
+
+    if (rv == -1)
+        return -1;
+    else if (rv == 0)
+        return -1;
     else
-      bytes = read(fd, event, sizeof(*event));
-    
+        bytes = read(fd, event, sizeof(*event));
+
     FD_ZERO(&set); /* clear the set */
 
     if (bytes == sizeof(*event))
@@ -69,7 +70,7 @@ size_t get_button_count(int fd)
 /**
  * Current state of an axis.
  */
-struct axis_state 
+struct axis_state
 {
     short x, y;
 };
@@ -100,35 +101,53 @@ size_t get_axis_state(struct js_event *event, struct axis_state axes[3])
 
 struct UsbButton::Impl
 {
-  int buttonFd = -1; 
-  struct js_event event;
+    int buttonFd = -1;
+    struct js_event event;
+    std::atomic<bool> stopThread;
+    std::unique_ptr<std::thread> thread;
 };
 
 UsbButton::UsbButton()
 {
-  pImpl_ = std::make_unique<Impl>();
-  // Connect to button device
-  pImpl_->buttonFd = open("/dev/input/js1", O_RDONLY);
-  if (pImpl_->buttonFd == -1)
-    printf("Could not open joystick\n");
-  else // flush
-    while (pImpl_->buttonFd != -1 && read_event(pImpl_->buttonFd, &pImpl_->event) == 0);
+    pImpl_ = std::make_unique<Impl>();
+    // Connect to button device
+    pImpl_->buttonFd = open("/dev/input/js1", O_RDONLY);
+    if (pImpl_->buttonFd == -1)
+    {
+        printf("Could not open joystick\n");
+    }
+    else
+    {
+        // flush
+        while (pImpl_->buttonFd != -1 && read_event(pImpl_->buttonFd, &pImpl_->event) == 0);
+
+        thread = std::make_unique<std::thread>([&]()
+        {
+            while (!pImpl_->stopThread && pImpl_->buttonFd != -1)
+            {
+                if (read_event(pImpl_->buttonFd, &pImpl_->event) == 0)
+                {
+                    if (pImpl_->event.type == JS_EVENT_BUTTON && !pImpl_->event.value)
+                    {
+                        OnTap();
+                    }
+                }
+            }
+            // Close the joystick connection
+            if (pImpl_->buttonFd != -1)
+                close(pImpl_->buttonFd);
+        });
+    }
 }
 
 UsbButton::~UsbButton()
 {
-  // Close the joystick connection
-  if (pImpl_->buttonFd != -1)
-    close(pImpl_->buttonFd);
-}
-
-ButtonAction UsbButton::PopAction()
-{
-    if (pImpl_->buttonFd != -1 && read_event(pImpl_->buttonFd, &pImpl_->event) == 0)
+    pImpl_->stopThread = true;
+    if (pImpl_->thread)
     {
-      return (pImpl_->event.type == JS_EVENT_BUTTON && !pImpl_->event.value) ? ButtonAction::Tap : ButtonAction::Unsupported;
+        pImpl_->thread->join();
+        pImpl_->thread = nullptr;
     }
-    return ButtonAction::None;
 }
 
 #endif

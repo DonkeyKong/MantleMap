@@ -16,7 +16,6 @@ class WeatherScene : public Scene
     ~WeatherScene();
     
     const char* SceneName() override;
-    const char* SceneResourceDir() override;
 
 protected:
     void updateOverride() override;

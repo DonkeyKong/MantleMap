@@ -36,13 +36,10 @@ class Scene
     Scene(ConfigService& map, SceneType sceneType, SceneLifetime sceneLifetime);
     virtual ~Scene();
     
-    // Provide a user readable or TTS speakabe name for this scene
+    // What is the name of the folder inside "Scenes" where this scene's resouces are stored
     virtual const char* SceneName() = 0;
     
-    // What is the name of the folder inside "Scenes" where this scene's resouces are stored
-    virtual const char* SceneResourceDir() = 0;
-    
-    // Get 
+    // Get a resource for the scene, first looking in scenes/<name>, then in scenes/Shared
     virtual std::string GetResourcePath(std::string resourceName) final;
     
     // Reset the scene to its default state
@@ -50,9 +47,6 @@ class Scene
     // and after some time, it should return to its default state showing 
     // the current time.
     virtual void Reset(bool animate) final;
-    
-    // Query the scene to perform an action. Returns true if handled, false if not
-    virtual bool Query(std::string query, std::string& response);
     
     // Called when scene is shown. Sets visibility to true and prepares other variables
     virtual void Show() final;
@@ -64,7 +58,7 @@ class Scene
     virtual void Hide() final;
     
     // Called when base scene has changed
-    virtual void BaseSceneChanged(std::string baseSceneName) final;
+    virtual void OnSceneChanged(std::string baseSceneName) final;
     
     // Draw the scene to the current OpenGL context
     virtual void Draw() final;
