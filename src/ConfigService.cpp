@@ -17,7 +17,6 @@ static const std::string CONFIG_PATH = "MantleMapConfig.json";
 static const std::string DEFAULT_SCENES_PATH = "scenes";
 static const std::string DEFAULT_EPHEMERIDES_PATH = "linux_p1550p2650.430";
 
-const std::string ConfigService::AllSettings = "*";
 ConfigService ConfigService::global;
 
 ConfigService::ConfigService()
@@ -28,6 +27,106 @@ ConfigService::ConfigService()
 ConfigService::~ConfigService()
 {
   
+}
+
+std::vector<std::string> ConfigService::splitKeyPath(const std::string& path)
+{
+    std::vector<std::string> pathParts;
+    constexpr char delim = '.';
+    std::string::size_type start = 0;
+    std::string::size_type end = 0;
+
+    while (start < path.size() && end != std::string::npos)
+    {
+        end = path.find(delim, start);
+        if (end == std::string::npos)
+            pathParts.push_back(path.substr(start));
+        else
+            pathParts.push_back(path.substr(start, end-start));
+        start = end+1; // skip over delimeter
+    }
+
+    return pathParts;
+}
+
+static bool hasJsonValueRecursive(const std::vector<std::string>& path, int currentElement, const json& currentObj)
+{
+    if (path.size() <= currentElement)
+    {
+        return true;
+    }
+    else if (currentObj.contains(path[currentElement]))
+    {
+        return hasJsonValueRecursive(path, currentElement+1, currentObj[path[currentElement]]);
+    }
+
+    return false;
+}
+
+bool ConfigService::hasJsonValue(const std::string& pathStr)
+{
+    auto path = splitKeyPath(pathStr);
+    if (path.size() == 0)
+        return false;
+    return hasJsonValueRecursive(path, 0, _config);
+}
+
+static nlohmann::json& getJsonValueRecursive(const std::vector<std::string>& path, int currentElement, json& currentObj, bool createIfMissing)
+{
+    if (path.size() <= currentElement)
+    {
+        return currentObj;
+    }
+    else if (currentObj.contains(path[currentElement]))
+    {
+        return getJsonValueRecursive(path, currentElement+1, currentObj[path[currentElement]], createIfMissing);
+    }
+    else if (createIfMissing)
+    {
+        currentObj[path[currentElement]] = json::object();
+        return getJsonValueRecursive(path, currentElement+1, currentObj[path[currentElement]], createIfMissing);
+    }
+
+    throw std::runtime_error("Key cannot be found!");
+}
+
+static const nlohmann::json& getJsonValueRecursive(const std::vector<std::string>& path, int currentElement, const json& currentObj)
+{
+    if (path.size() <= currentElement)
+    {
+        return currentObj;
+    }
+    else if (currentObj.contains(path[currentElement]))
+    {
+        return getJsonValueRecursive(path, currentElement+1, currentObj[path[currentElement]]);
+    }
+
+    throw std::runtime_error("Key cannot be found!");
+}
+
+bool ConfigService::HasKey(const std::string& key)
+{
+    if (!_initDone) throw std::runtime_error("Config service is not initialized!");
+    return hasJsonValue(key);
+}
+
+bool ConfigService::ValueTypeMatches(const std::string& key, const nlohmann::json& value)
+{
+    if (!_initDone) throw std::runtime_error("Config service is not initialized!");
+    if (!HasKey(key)) return false;
+    return getJsonValue(key, false).type() == value.type();
+}
+
+nlohmann::json& ConfigService::getJsonValue(const std::string& pathStr, bool createIfMissing)
+{
+    auto path = splitKeyPath(pathStr);
+    return getJsonValueRecursive(path, 0, _config, createIfMissing);
+}
+
+const nlohmann::json& ConfigService::getJsonValue(const std::string& pathStr) const
+{
+    auto path = splitKeyPath(pathStr);
+    return getJsonValueRecursive(path, 0, _config);
 }
 
 void ConfigService::Init()
@@ -46,8 +145,14 @@ void ConfigService::Init()
         SaveConfig();
         _initDone = true;
     }
+}
 
-    OnSettingChanged(AllSettings);
+void ConfigService::Subscribe(const std::function <void (const ConfigUpdateEventArg&)>& handler) 
+{
+    if (!_initDone) throw std::runtime_error("Config service is not initialized!");
+    ConfigUpdateEventArg arg(*this, "", true);
+    handler(arg);
+    OnSettingChanged.connect(handler);
 }
 
 int ConfigService::width() const
@@ -85,10 +190,11 @@ std::string ConfigService::ephemeridesPath() const
     if (!_initDone) throw std::runtime_error("Config service is not initialized!");
     return ephemeridesPath_;
 }
-const json& ConfigService::GetConfigJson() const
+const json& ConfigService::GetConfigJson(const std::string& key) const
 {
     if (!_initDone) throw std::runtime_error("Config service is not initialized!");
-    return _config;
+
+    return getJsonValue(key);
 }
 
 template <>
@@ -96,11 +202,15 @@ void ConfigService::SetConfigValue(const std::string& key, const json& value)
 {
     try
     {
-    if (!_config.contains(key) || _config[key] != value)
-    {
-        _config[key] = value;
-        if (_initDone) OnSettingChanged(key);
-    }
+        json& entry = getJsonValue(key, true);
+        if (entry != value)
+        {
+            entry = value;
+            if (_initDone)
+            {
+                OnSettingChanged(ConfigUpdateEventArg(*this, key, false));
+            }
+        }
     }
     catch (...)
     {

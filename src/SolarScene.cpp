@@ -8,9 +8,9 @@ static auto& config = ConfigService::global;
 SolarScene::SolarScene(AstronomyService& astro) : Scene(SceneType::Base, SceneLifetime::Manual),
   _astro(astro)
 {   
-    config.Subscribe([&](std::string eventStr)
+    config.Subscribe([&](const ConfigUpdateEventArg& arg)
     {
-        config.UpdateIfChanged(_showMoon, eventStr, "solarShowMoon", true);
+        arg.UpdateIfChanged("scenes.Solar.showMoon", _showMoon, true);
     });
   
   _vScale = (double)config.height() / 180.0 * 0.9;

@@ -277,11 +277,11 @@ int main(int argc, char *argv[])
     int fpsLimit = DEFAULT_FPS;
     
     // Subscribe to settings changes (this also runs the lambda once before subscribing)
-    config.Subscribe([&](std::string setting)
+    config.Subscribe([&](const ConfigUpdateEventArg& arg)
     {
-        config.UpdateIfChanged(defaultScene, setting, "defaultScene", DEFAULT_SCENE_NAME);
+        arg.UpdateIfChanged("defaultScene", defaultScene, DEFAULT_SCENE_NAME);
         
-        if (config.UpdateIfChanged(fpsLimit, setting, "fpsLimit", DEFAULT_FPS))
+        if (arg.UpdateIfChanged("fpsLimit", fpsLimit, DEFAULT_FPS))
         {
             expectedFrameTime = std::chrono::high_resolution_clock::duration(
             std::chrono::nanoseconds((int)(1.0/(double)fpsLimit * 1000000000.0))    );

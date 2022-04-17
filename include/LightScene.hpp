@@ -27,10 +27,11 @@ private:
     double sunTargetLat;
     double sunTargetLon;
     float sunPropAngleCurrent;
-    float sunPropAngleTarget;
     double sunCurrentLat;
     double sunCurrentLon;
     bool overrideSunLocation;
+    double sunOverrideLat;
+    double sunOverrideLon;
 
     float sunPropigationDeg;
     bool lightAdjustEnabled;

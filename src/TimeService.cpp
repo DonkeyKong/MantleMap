@@ -199,3 +199,76 @@ void TimeService::FinishAndWaitForNextFrame()
 {
     
 }
+
+
+//   // Use this regex for delta time queries
+//   {
+//     std::smatch match; 
+//     std::regex deltaTimeRegex(R"((?:move|go|travel|show me)\s+(forwards?|backwards?|back)?(\s+(?:and\s+)?(-?[0-9]+(?:\.)?[0-9]*)\s+(minutes?|hours?|days?|weeks?|months?))+)", std::regex_constants::icase);
+//     if (std::regex_match(query, match, deltaTimeRegex))
+//     {
+//       double dir = 1;
+//       double delta = 0;
+//       // Captured groups are:
+//       // 1 - backward
+//       // 2 - and 38 minutes
+//       // 3 - 38
+//       // 4 - minutes
+//       // ...(2,3,4 repeating)
+      
+//      if (match[1].str()[0] == 'b')
+//         dir = -1;
+      
+//       for (int i=3; i < (int)match.size(); i+=3)
+//       {
+//         if (match[i+1].str().rfind("mi", 0) == 0)
+//         {
+//           delta += std::stod(match[i]) / 24.0 / 60.0;
+//         }
+//         else if (match[i+1].str().rfind("h", 0) == 0)
+//         {
+//           delta += std::stod(match[i]) / 24.0;
+//         }
+//         else if (match[i+1].str().rfind("d", 0) == 0)
+//         {
+//           delta += std::stod(match[i]);
+//         }
+//         else if (match[i+1].str().rfind("w", 0) == 0)
+//         {
+//           delta += std::stod(match[i]) * 7.0;
+//         }
+//         else if (match[i+1].str().rfind("mo", 0) == 0)
+//         {
+//           delta += round(std::stod(match[i]) * (365.0 / 12.0));
+//         }
+//       }
+      
+//       TimeService::SetSceneTimeRelative(delta * dir);
+
+//       std::stringstream output;
+//       output << "Time adjustment adjusted by " << delta * dir << " days" << std::endl;
+//       response = output.str();
+    
+//       return true;
+//     }
+//   }
+  
+//   // Use this regex for time multiplier queries
+//   {
+//     std::smatch match; 
+//     std::regex deltaTimeRegex(R"(set\s+(?:time speed|time|speed)\s+multiplier\s+(?:to\s+)?(-?[0-9]+(?:\.)?[0-9]*))", std::regex_constants::icase);
+//     if (std::regex_match(query, match, deltaTimeRegex))
+//     {
+//       double timeMultiplier = 1.0;
+     
+//       timeMultiplier = std::stod(match[1]);
+      
+//       TimeService::SetSceneTimeMultiplier(timeMultiplier);
+      
+//       std::stringstream output;
+//       output << "Speed multiplier set to " << timeMultiplier << " days" << std::endl;
+//       response = output.str();
+    
+//       return true;
+//     }
+//   }

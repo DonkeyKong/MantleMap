@@ -36,9 +36,55 @@ void Scene::RegisterEndpoints(HttpService& http)
         sceneInfo["visible"] = Visible();
         sceneInfo["sceneType"] = GetSceneType() == SceneType::Base ? "Base" : "Overlay";
 
+        const json& sceneDesc = config.GetConfigJson(fmt::format("scenes.{}", SceneName()));
+        for (const auto& kvp : sceneDesc.items())
+        {
+            sceneInfo[kvp.key()] = kvp.value();
+        }
+
         std::stringstream ss;
         ss << std::setw(4) << sceneInfo;
         res.body = ss.str();
+    });
+
+    http.Server().Patch(fmt::format("/scenes/{}", SceneName()), [=](const httplib::Request& req, httplib::Response& res) 
+    {
+        auto settingsPatch = json::parse(req.body);
+
+        for (auto& kvp : settingsPatch.items())
+        {
+            if (kvp.key() == "name" || 
+                kvp.key() == "visible" || 
+                kvp.key() == "sceneType" )
+                continue;
+
+            std::string key = fmt::format("scenes.{}.{}", SceneName(), kvp.key());
+
+            if (!config.HasKey(key))
+            {
+                res.status = 400;
+                res.body = fmt::format("Bad patch request, settings key {} is invalid.", kvp.key());
+                return;
+            }
+
+            if (!config.ValueTypeMatches(key, kvp.value()))
+            {
+                res.status = 400;
+                res.body = fmt::format("Bad patch request, value {} was an incorrect type.", kvp.key());
+                return;
+            }
+        }
+
+        for (auto& kvp : settingsPatch.items())
+        {
+            if (kvp.key() == "name" || 
+                kvp.key() == "visible" || 
+                kvp.key() == "sceneType" )
+                continue;
+
+            std::string key = fmt::format("scenes.{}.{}", SceneName(), kvp.key());
+            config.SetConfigValue(key, kvp.value());
+        }
     });
 
     registerEndpointsOverride(http);
