@@ -31,29 +31,8 @@ class ConfigService
     template <typename T>
     T GetConfigValue(const std::string& key, const T& defaultValue)
     {
-        T configValue;
-      try
-      {
-        if (_config.contains(key))
-        {
-          configValue = _config[key];  // Try to read this value from the config
-          //std::cout << "Read " << key << std::endl;
-        }
-        else
-        {
-          SetConfigValue(key, defaultValue);
-          configValue = defaultValue;
-          //std::cout << "Setting " << key << std::endl;
-        }
-      }
-      catch (...)
-      {
-        SetConfigValue(key, defaultValue);
-        configValue = defaultValue;
-        //std::cout << "Setting " << key << std::endl;
-      }
-      
-      return configValue;
+        if (!_initDone) throw std::runtime_error("Config service is not initialized!");
+        return getConfigValueInternal(key, defaultValue);
     }
     
     template <typename T>
@@ -75,6 +54,7 @@ class ConfigService
     template <typename T>
     bool UpdateIfChanged(T& val, const std::string& eventStr, const std::string& key, const T& defaultValue)
     {
+        if (!_initDone) throw std::runtime_error("Config service is not initialized!");
         if (eventStr == key || eventStr == AllSettings)
         {
             val = GetConfigValue(key, defaultValue);
@@ -87,11 +67,13 @@ class ConfigService
 
     bool HasKey(const std::string key)
     {
+        if (!_initDone) throw std::runtime_error("Config service is not initialized!");
         return _config.contains(key);
     }
 
     bool ValueTypeMatches(const std::string& key, const nlohmann::json& value)
     {
+        if (!_initDone) throw std::runtime_error("Config service is not initialized!");
         if (!HasKey(key)) return false;
         return _config[key].type() == value.type();
     }
@@ -100,6 +82,7 @@ class ConfigService
 
     void Subscribe(const std::function <void (std::string)>& handler) 
     {
+        if (!_initDone) throw std::runtime_error("Config service is not initialized!");
         handler(AllSettings);
         OnSettingChanged.connect(handler);
     }
@@ -126,5 +109,34 @@ class ConfigService
     double homeLongitudeDeg_;
     std::string sceneResourcePath_;
     std::string ephemeridesPath_;
+
+    // Configuration functions
+    template <typename T>
+    T getConfigValueInternal(const std::string& key, const T& defaultValue)
+    {
+        T configValue;
+        try
+        {
+            if (_config.contains(key))
+            {
+            configValue = _config[key];  // Try to read this value from the config
+            //std::cout << "Read " << key << std::endl;
+            }
+            else
+            {
+            SetConfigValue(key, defaultValue);
+            configValue = defaultValue;
+            //std::cout << "Setting " << key << std::endl;
+            }
+        }
+        catch (...)
+        {
+            SetConfigValue(key, defaultValue);
+            configValue = defaultValue;
+            //std::cout << "Setting " << key << std::endl;
+        }
+        
+        return configValue;
+    }
 };
 

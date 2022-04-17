@@ -36,12 +36,12 @@ void ConfigService::Init()
     {
         _settingsReadOK = readConfig();
 
-        sceneResourcePath_ = GetConfigValue("sceneResourcePath", DEFAULT_SCENES_PATH);
-        ephemeridesPath_ = GetConfigValue("ephemeridesPath", DEFAULT_EPHEMERIDES_PATH);
-        width_ = GetConfigValue("width", 192);
-        height_ = GetConfigValue("height", 96);
-        homeLatitudeDeg_ = GetConfigValue("homeLatitudeDeg", 0.0);
-        homeLongitudeDeg_ = GetConfigValue("homeLongitudeDeg", 0.0);
+        sceneResourcePath_ = getConfigValueInternal("sceneResourcePath", DEFAULT_SCENES_PATH);
+        ephemeridesPath_ = getConfigValueInternal("ephemeridesPath", DEFAULT_EPHEMERIDES_PATH);
+        width_ = getConfigValueInternal("width", 192);
+        height_ = getConfigValueInternal("height", 96);
+        homeLatitudeDeg_ = getConfigValueInternal("homeLatitudeDeg", 0.0);
+        homeLongitudeDeg_ = getConfigValueInternal("homeLongitudeDeg", 0.0);
 
         SaveConfig();
         _initDone = true;
@@ -52,35 +52,42 @@ void ConfigService::Init()
 
 int ConfigService::width() const
 {
+    if (!_initDone) throw std::runtime_error("Config service is not initialized!");
     return width_;
 }
 
 int ConfigService::height() const
 {
+    if (!_initDone) throw std::runtime_error("Config service is not initialized!");
     return height_;
 }
 
 double ConfigService::homeLatitudeDeg() const
 {
+    if (!_initDone) throw std::runtime_error("Config service is not initialized!");
     return homeLatitudeDeg_;
 }
 
 double ConfigService::homeLongitudeDeg() const
 {
+    if (!_initDone) throw std::runtime_error("Config service is not initialized!");
     return homeLongitudeDeg_;
 }
 
 std::string ConfigService::sceneResourcePath() const
 {
+    if (!_initDone) throw std::runtime_error("Config service is not initialized!");
     return sceneResourcePath_;
 }
 
 std::string ConfigService::ephemeridesPath() const
 {
+    if (!_initDone) throw std::runtime_error("Config service is not initialized!");
     return ephemeridesPath_;
 }
 const json& ConfigService::GetConfigJson() const
 {
+    if (!_initDone) throw std::runtime_error("Config service is not initialized!");
     return _config;
 }
 
@@ -107,6 +114,7 @@ void ConfigService::SaveConfig()
 
 std::string ConfigService::GetSharedResourcePath(const std::string& resourceName) const
 {
+  if (!_initDone) throw std::runtime_error("Config service is not initialized!");
   auto filePath = std::filesystem::path(sceneResourcePath_) / "Shared" / resourceName;
   if (std::filesystem::exists(filePath))
   {
