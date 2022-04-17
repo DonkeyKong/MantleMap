@@ -2,7 +2,6 @@
 #define TEXTLABEL_HPP
 
 #include "SceneElement.hpp"
-#include "ConfigService.hpp"
 #include "Attributes.hpp"
 
 #include <vector>

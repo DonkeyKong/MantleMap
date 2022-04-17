@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ConfigService.hpp"
 #include "GfxShader.hpp"
 #include "GfxTexture.hpp"
 #include "Attributes.hpp"
@@ -9,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 class GfxProgram
 {

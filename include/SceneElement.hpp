@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ConfigService.hpp"
 #include "GfxTexture.hpp"
 #include "GfxProgram.hpp"
 

@@ -6,7 +6,6 @@
 
 #include "GfxProgram.hpp"
 #include "SceneElement.hpp"
-#include "ConfigService.hpp"
 #include "Attributes.hpp"
 
 enum class MeshMode : GLenum

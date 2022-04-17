@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ConfigService.hpp"
-
 #include "EGL/egl.h"
 #include "EGL/eglplatform.h"
 #include "GLES2/gl2.h"

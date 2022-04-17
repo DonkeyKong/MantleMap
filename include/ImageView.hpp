@@ -4,7 +4,6 @@
 #include "GfxTexture.hpp"
 #include "GfxProgram.hpp"
 #include "SceneElement.hpp"
-#include "ConfigService.hpp"
 
 class ImageView : public SceneElement
 {

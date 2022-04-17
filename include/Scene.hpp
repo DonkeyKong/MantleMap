@@ -5,7 +5,6 @@
 
 #include "NaturalEarth.hpp"
 #include "SceneElement.hpp"
-#include "ConfigService.hpp"
 #include "TimeService.hpp"
 #include "HttpService.hpp"
 

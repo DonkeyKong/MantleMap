@@ -4,7 +4,6 @@
 #include "PolyLine.hpp"
 #include "TextLabel.hpp"
 #include "Scene.hpp"
-#include "ConfigService.hpp"
 #include "AstronomyService.hpp"
 
 class SolarScene : public Scene
