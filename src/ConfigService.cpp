@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <fstream>
 
-
 using json = nlohmann::json;
 
 #ifdef PI_HOST
@@ -19,6 +18,7 @@ static const std::string DEFAULT_SCENES_PATH = "scenes";
 static const std::string DEFAULT_EPHEMERIDES_PATH = "linux_p1550p2650.430";
 
 const std::string ConfigService::AllSettings = "*";
+ConfigService ConfigService::global;
 
 ConfigService::ConfigService()
 {

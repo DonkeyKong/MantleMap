@@ -12,7 +12,7 @@
 class TextLabel : public SceneElement
 {
  public:
-    TextLabel(ConfigService&);
+    TextLabel();
     virtual ~TextLabel();
     
     void SetText(std::string);

@@ -11,14 +11,13 @@
 class HttpService
 {
 public:
-    HttpService(ConfigService& config);
+    HttpService();
     ~HttpService();
     bool Running();
     std::string ListeningInterface();
     httplib::Server& Server();
 private:
     std::string listeningInterface;
-    ConfigService& config;
     void setupCallbacks();
     std::unique_ptr<httplib::Server> srv;
     std::unique_ptr<std::thread> serverThread;

@@ -15,6 +15,8 @@
 #endif
 
 #include "GLError.hpp"
+#include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
 static const EGLint attribute_list[] =
 {
@@ -32,7 +34,7 @@ static const EGLint context_attributes[] =
     EGL_NONE
 };
 
-GLRenderContext::GLRenderContext(ConfigService& map) : _map(map)
+GLRenderContext::GLRenderContext()
 {
   // Init the OpenGL context for this drawing
   initGL();
@@ -70,8 +72,8 @@ void GLRenderContext::initGL()
   print_if_glerror("Bind OpenGL ES API");
     
   // Select an OpenGL configuration
-	EGLConfig config;
-  result = eglChooseConfig(GDisplay, attribute_list, &config, 1, &num_config);
+    EGLConfig glConfig;
+  result = eglChooseConfig(GDisplay, attribute_list, &glConfig, 1, &num_config);
   assert(EGL_FALSE != result);
   print_if_glerror("Choose config");
     
@@ -81,11 +83,11 @@ void GLRenderContext::initGL()
   print_if_glerror("Bind OpenGL ES API");
   
   // Create an OpenGL rendering context
-	GContext = eglCreateContext(GDisplay, config, EGL_NO_CONTEXT, context_attributes);
+	GContext = eglCreateContext(GDisplay, glConfig, EGL_NO_CONTEXT, context_attributes);
 	assert(GContext!=EGL_NO_CONTEXT);
 	print_if_glerror("Create render context");
 	
-	GSurface = eglCreatePbufferSurface(GDisplay, config, NULL);
+	GSurface = eglCreatePbufferSurface(GDisplay, glConfig, NULL);
   eglMakeCurrent(GDisplay, GSurface, GSurface, GContext);
 
 	// Get info about the API
@@ -109,7 +111,7 @@ void GLRenderContext::initGL()
   glBindTexture(GL_TEXTURE_2D, RenderedTexture);
 
   // Give an empty image to OpenGL ( the last "0" )
-  glTexImage2D(GL_TEXTURE_2D, 0 ,GL_RGBA, _map.width(), _map.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0 ,GL_RGBA, config.width(), config.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
   // Poor filtering. Needed !
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -128,5 +130,5 @@ void GLRenderContext::BeginDraw()
 
   // Bind to the frame buffer
   glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
-  glViewport(0,0,_map.width(),_map.height()); // Render on the whole framebuffer, complete from the lower left corner to the upper right
+  glViewport(0,0,config.width(), config.height()); // Render on the whole framebuffer, complete from the lower left corner to the upper right
 }

@@ -3,7 +3,7 @@
 
 std::unique_ptr<GfxProgram> ImageView::_program;
 
-ImageView::ImageView(ConfigService& map) : SceneElement(map)
+ImageView::ImageView()
 {    
   texture = 0;
   dirty = false;

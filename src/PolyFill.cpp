@@ -6,7 +6,7 @@
 
 std::unique_ptr<GfxProgram> PolyFill::_program;
 
-PolyFill::PolyFill(ConfigService& map) : SceneElement(map)
+PolyFill::PolyFill()
 {    
     _dirty = true;
     _meshMode = MeshMode::Fan;

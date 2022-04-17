@@ -1,5 +1,7 @@
 #include "DisplayDevice.hpp"
 #include "GLError.hpp"
+#include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
 #ifdef LED_PANEL_SUPPORT
 
@@ -25,7 +27,7 @@ struct DisplayDevice::Impl
     FrameCanvas* offscreen_canvas;
     ImageRGBA CPUTextureCache;
 
-    Impl(ConfigService& config) : config(config), CPUTextureCache(config.width(), config.height())
+    Impl() : CPUTextureCache(config.width(), config.height())
     {
         // Config parameters
         int cols = 64;
@@ -143,7 +145,6 @@ static const EGLint context_attributes[] =
 // This display device opens an OS native window and renders a preview to the display
 struct DisplayDevice::Impl : public InputButton
 {
-    ConfigService& config;
     OSWindow* window;
     bool running = true;
     EGLSurface surface;
@@ -157,7 +158,7 @@ struct DisplayDevice::Impl : public InputButton
     GLint coordinateAttrib;
     std::vector<float> mesh;
 
-    Impl(ConfigService& config) : config(config), CPUTextureCache(config.width(), config.height())
+    Impl() : CPUTextureCache(config.width(), config.height())
     {
         // Create the OS window
         window = OSWindow::New();
@@ -197,7 +198,6 @@ struct DisplayDevice::Impl : public InputButton
 
         // Load and compile the image display shaders into a glsl program
         program = std::make_unique<GfxProgram>(
-            config, 
             config.GetSharedResourcePath("ledmatrixvertshader.glsl"), 
             config.GetSharedResourcePath("ledmatrixfragshader.glsl"),
             std::vector<std::string>());
@@ -335,9 +335,9 @@ struct DisplayDevice::Impl : public InputButton
     }
 };
 
-DisplayDevice::DisplayDevice(ConfigService& config) 
+DisplayDevice::DisplayDevice() 
 {
-    pImpl_ = std::make_unique<Impl>(config);
+    pImpl_ = std::make_unique<Impl>();
 }
 
 DisplayDevice::~DisplayDevice() 

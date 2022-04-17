@@ -1,21 +1,21 @@
 #include "SolarScene.hpp"
+#include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-SolarScene::SolarScene(ConfigService& map, AstronomyService& astro) : Scene(map, SceneType::Base, SceneLifetime::Manual),
-  _astro(astro),
-  _solarLine(map), _horizonLine(map), _sunCircle(map), _lunarLine(map), _moonCircle(map),
-  _sunriseLabel(map), _sunsetLabel(map)
+SolarScene::SolarScene(AstronomyService& astro) : Scene(SceneType::Base, SceneLifetime::Manual),
+  _astro(astro)
 {   
-    map.Subscribe([&](std::string eventStr)
+    config.Subscribe([&](std::string eventStr)
     {
-        map.UpdateIfChanged(_showMoon, eventStr, "solarShowMoon", true);
+        config.UpdateIfChanged(_showMoon, eventStr, "solarShowMoon", true);
     });
   
-  _vScale = (double)map.height() / 180.0 * 0.9;
-  _vOffset = (double)map.height() * 0.05;
-  _hScale = (double)map.width();
+  _vScale = (double)config.height() / 180.0 * 0.9;
+  _vOffset = (double)config.height() * 0.05;
+  _hScale = (double)config.width();
   
   _moonColorDay  = {0.3f,0.3f,0.3f,1.0f};
   _moonColorNight  = {0.6f,0.6f,0.6f,1.0f};

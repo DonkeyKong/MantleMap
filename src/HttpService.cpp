@@ -1,4 +1,6 @@
 #include "HttpService.hpp"
+#include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
 #include <sys/types.h>
 #include <ifaddrs.h>
@@ -52,7 +54,7 @@ static std::string getFirstExternalHostAddr()
     return hostAddr;
 }
 
-HttpService::HttpService(ConfigService& config) : config(config)
+HttpService::HttpService()
 {
     std::filesystem::path webDir = std::filesystem::path(config.sceneResourcePath()) / "Web";
     for (const auto & entry : std::filesystem::directory_iterator(webDir))

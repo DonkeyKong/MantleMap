@@ -9,7 +9,7 @@
 class ImageView : public SceneElement
 {
  public:
-    ImageView(ConfigService&);
+    ImageView();
     virtual ~ImageView();
     void SetImage(std::shared_ptr<ImageRGBA> image);
     void SetPosition(float x, float y);

@@ -6,7 +6,7 @@
 class MapTimeScene : public Scene
 {
  public:
-    MapTimeScene(ConfigService& map);
+    MapTimeScene();
     ~MapTimeScene();
     
     const char* SceneName() override;

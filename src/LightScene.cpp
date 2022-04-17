@@ -1,5 +1,7 @@
 #include "LightScene.hpp"
 #include "AnimationUtil.hpp"
+#include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
 #include <regex>
 #include <algorithm>
@@ -8,9 +10,8 @@
 #include <chrono>
 #include <ctime>
 
-LightScene::LightScene(ConfigService& config, AstronomyService& astro) : 
-  Scene(config, SceneType::Base, SceneLifetime::Manual),
-  projection(config),
+LightScene::LightScene(AstronomyService& astro) : 
+  Scene(SceneType::Base, SceneLifetime::Manual),
   astro(astro)
 {
     // Sunlight map settings

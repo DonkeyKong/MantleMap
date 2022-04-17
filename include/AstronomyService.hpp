@@ -14,7 +14,7 @@ extern "C"
 class AstronomyService
 {
  public:
-    AstronomyService(ConfigService&);
+    AstronomyService();
     ~AstronomyService();
     
     void GetSolarPoint(double julianDate, double& latitudeDeg, double& longitudeDeg);
@@ -30,7 +30,6 @@ class AstronomyService
   private:
     object sol, lun;
     short int accuracy;
-    ConfigService& config;
     
     short int transit_coord(time_parameters_t* tp, object* obj,
                                double x_pole, double y_pole,

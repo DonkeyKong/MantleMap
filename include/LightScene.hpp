@@ -6,7 +6,7 @@
 class LightScene : public Scene
 {
  public:
-    LightScene(ConfigService& config, AstronomyService& astro);
+    LightScene(AstronomyService& astro);
     ~LightScene();
     
     const char* SceneName() override;

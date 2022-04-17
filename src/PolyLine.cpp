@@ -6,7 +6,7 @@
 
 std::unique_ptr<GfxProgram> PolyLine::_program;
 
-PolyLine::PolyLine(ConfigService& map) : SceneElement(map)
+PolyLine::PolyLine()
 {    
     _dirty = true;
     _halfWidth = 0.5f;

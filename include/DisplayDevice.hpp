@@ -13,7 +13,7 @@ class DisplayDevice final
 {
     public:
         // Display devices must be constructed in the main thread
-        DisplayDevice(ConfigService& map);
+        DisplayDevice();
 
         ~DisplayDevice();
 

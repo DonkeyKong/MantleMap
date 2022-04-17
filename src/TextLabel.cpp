@@ -7,7 +7,7 @@ std::unique_ptr<GfxTexture> TextLabel::_fontTextureLarge;
 std::unique_ptr<GfxTexture> TextLabel::_fontTextureSmall;
 std::unique_ptr<GfxTexture> TextLabel::_fontTextureBigTall;
 
-TextLabel::TextLabel(ConfigService& map) : SceneElement(map)
+TextLabel::TextLabel()
 {
   _scale = 1.0f;
   _alignment = HAlign::Left;

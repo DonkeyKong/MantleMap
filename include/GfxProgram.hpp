@@ -16,7 +16,7 @@ public:
     GfxProgram() = delete;
     GfxProgram(const GfxProgram&) = delete;
     GfxProgram(GfxProgram&&) = delete;
-	GfxProgram(ConfigService& config, const std::string& vertPath, const std::string& fragPath, const std::vector<std::string>& features);
+	GfxProgram(const std::string& vertPath, const std::string& fragPath, const std::vector<std::string>& features);
 	~GfxProgram();
 
 	void SetUniform(const char* name, bool value);
@@ -47,7 +47,6 @@ private:
 	std::unique_ptr<GfxShader> FragmentShader;
     std::unordered_map<std::string, GLint> attribCache;
 	GLuint Id{0};
-    ConfigService& config;
     void setCameraFromPixelTransform();
     void checkProgram();
 };

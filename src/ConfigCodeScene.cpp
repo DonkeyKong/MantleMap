@@ -1,15 +1,14 @@
 #include "ConfigCodeScene.hpp"
 #include "GfxProgram.hpp"
+#include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
 #include <fmt/format.h>
 #include <chrono>
 #include <ctime>
 
 
-ConfigCodeScene::ConfigCodeScene(ConfigService& config, HttpService& http) : Scene(config, SceneType::Base, SceneLifetime::Manual),
-    qrCode(config),
-    scanToConfigureLabel(config),
-    urlLabel(config)
+ConfigCodeScene::ConfigCodeScene(HttpService& http) : Scene(SceneType::Base, SceneLifetime::Manual)
 {
   Elements.push_back(&scanToConfigureLabel);
   Elements.push_back(&urlLabel);

@@ -105,6 +105,8 @@ class ConfigService
     }
     
     static const std::string AllSettings;
+
+    static ConfigService global;
   private: 
     // Internal config
     bool readConfig();

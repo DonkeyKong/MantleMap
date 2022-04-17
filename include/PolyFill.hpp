@@ -19,7 +19,7 @@ enum class MeshMode : GLenum
 class PolyFill : public SceneElement
 {
  public:
-    PolyFill(ConfigService&);
+    PolyFill();
     virtual ~PolyFill();
     void SetMeshMode();
     void SetPoints(const std::vector<Vertex>& points);

@@ -1,4 +1,6 @@
 #include "Scene.hpp"
+#include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
 #include <assert.h>
 #include <filesystem>
@@ -9,8 +11,7 @@ using json = nlohmann::json;
 
 #include "GLError.hpp"
 
-Scene::Scene(ConfigService& map, SceneType sceneType, SceneLifetime sceneLifetime) : 
-  config(map)
+Scene::Scene(SceneType sceneType, SceneLifetime sceneLifetime)
 {
   _initGLDone = false;
   _isVisible = false;
@@ -34,7 +35,7 @@ void Scene::RegisterEndpoints(HttpService& http)
         sceneInfo["name"] = SceneName();
         sceneInfo["visible"] = Visible();
         sceneInfo["sceneType"] = GetSceneType() == SceneType::Base ? "Base" : "Overlay";
-        
+
         std::stringstream ss;
         ss << std::setw(4) << sceneInfo;
         res.body = ss.str();
@@ -205,5 +206,5 @@ std::unique_ptr<GfxTexture> Scene::loadTexture(std::string resourceName)
 // Load a vert and frag shader and create a program with them
 std::unique_ptr<GfxProgram> Scene::loadProgram(std::string vertShaderName, std::string fragShaderName, std::vector<std::string> features)
 {
-    return std::make_unique<GfxProgram>(config, GetResourcePath(vertShaderName), GetResourcePath(fragShaderName), features);
+    return std::make_unique<GfxProgram>(GetResourcePath(vertShaderName), GetResourcePath(fragShaderName), features);
 }

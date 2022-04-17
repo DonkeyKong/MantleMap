@@ -3,7 +3,6 @@
 
 #include "TextLabel.hpp"
 #include "Scene.hpp"
-#include "ConfigService.hpp"
 
 #include <mutex>
 #include <thread>
@@ -12,7 +11,7 @@
 class WeatherScene : public Scene
 {
  public:
-    WeatherScene(ConfigService& map);
+    WeatherScene();
     ~WeatherScene();
     
     const char* SceneName() override;

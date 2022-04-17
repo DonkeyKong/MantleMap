@@ -6,7 +6,7 @@
 class CmdDebugScene : public Scene
 {
  public:
-    CmdDebugScene(ConfigService& map);
+    CmdDebugScene();
     ~CmdDebugScene();
     
     const char* SceneName() override;

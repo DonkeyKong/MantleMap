@@ -10,7 +10,7 @@
 class GLRenderContext
 {
  public:
-    GLRenderContext(ConfigService& map);
+    GLRenderContext();
     ~GLRenderContext();
     
     // Draw the specified scene to the RGB matrix
@@ -18,7 +18,6 @@ class GLRenderContext
 
   private:
     void initGL();
-    ConfigService& _map;
     
     EGLDisplay GDisplay;
     EGLContext GContext;

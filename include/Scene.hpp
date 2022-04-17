@@ -34,7 +34,7 @@ class Scene
 {
  public:
     // No GL calls allowed here
-    Scene(ConfigService& map, SceneType sceneType, SceneLifetime sceneLifetime);
+    Scene(SceneType sceneType, SceneLifetime sceneLifetime);
     virtual ~Scene();
     
     // What is the name of the folder inside "Scenes" where this scene's resouces are stored
@@ -88,7 +88,6 @@ class Scene
     std::unique_ptr<GfxProgram> loadProgram(std::string vertShaderName, std::string fragShaderName, std::vector<std::string> features);
 
     std::vector<SceneElement*> Elements;
-    ConfigService& config;
     std::string BaseSceneName;
     bool clearBeforeDraw;
     

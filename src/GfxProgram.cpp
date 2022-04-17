@@ -1,8 +1,9 @@
 #include "GfxProgram.hpp"
 #include "GLError.hpp"
+#include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
-GfxProgram::GfxProgram(ConfigService& config, const std::string& vertPath, const std::string& fragPath, const std::vector<std::string>& features) :
-    config(config)
+GfxProgram::GfxProgram(const std::string& vertPath, const std::string& fragPath, const std::vector<std::string>& features)
 {
     VertexShader = std::make_unique<GfxShader>(vertPath, ShaderType::VertexShader, features);
     FragmentShader = std::make_unique<GfxShader>(fragPath, ShaderType::FragmentShader, features);

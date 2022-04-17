@@ -1,5 +1,6 @@
 #include "NaturalEarth.hpp"
 #include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
 #include <math.h>
 
@@ -21,7 +22,7 @@ double NaturalEarth::C4 = 11 * B4;
 double NaturalEarth::EPS = 1e-11;
 double NaturalEarth::MAX_Y = 0.8707 * 0.52 * M_PI;
 
-NaturalEarth::NaturalEarth(ConfigService& config) : config(config)
+NaturalEarth::NaturalEarth()
 {
     // These settings will not be changed live so we can safely read them just once
     marginTop = config.GetConfigValue("marginTop", 1);

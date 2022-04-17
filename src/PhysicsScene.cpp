@@ -1,14 +1,15 @@
 #include "PhysicsScene.hpp"
 #include "GfxProgram.hpp"
 #include "Utils.hpp"
+#include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
 #include <math.h>
 #include <chrono>
 #include <ctime>
 
-PhysicsScene::PhysicsScene(ConfigService& config) : Scene(config, SceneType::Base, SceneLifetime::Manual),
-    points(150), 
-    bgFill(config)
+PhysicsScene::PhysicsScene() : Scene(SceneType::Base, SceneLifetime::Manual),
+    points(150)
 {
     srand(time(nullptr));
 

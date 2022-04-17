@@ -4,11 +4,7 @@
 #include <ctime>
 
 
-MapTimeScene::MapTimeScene(ConfigService& map) : Scene(map, SceneType::Overlay, SceneLifetime::Manual),
-    _monthLabel(map),
-    _dayLabel(map),
-    _yearLabel(map),
-    _timeLabel(map)
+MapTimeScene::MapTimeScene() : Scene(SceneType::Overlay, SceneLifetime::Manual)
 {
   Elements.push_back(&_timeLabel);
 	Elements.push_back(&_monthLabel);

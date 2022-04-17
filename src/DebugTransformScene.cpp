@@ -1,15 +1,6 @@
 #include "DebugTransformScene.hpp"
 
-DebugTransformScene::DebugTransformScene(ConfigService& map) : Scene(map, SceneType::Base, SceneLifetime::Manual),
-    _label1(map),
-    _label2(map),
-    _label3(map),
-    _label4(map),
-    _label5(map),
-    _label6(map),
-    _label7(map),
-    _label8(map),
-    projection(map)
+DebugTransformScene::DebugTransformScene() : Scene(SceneType::Base, SceneLifetime::Manual)
 {
     _label1.SetText("DEBUG");
     _label1.SetPosition(0,0);

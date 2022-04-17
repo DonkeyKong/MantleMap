@@ -1,5 +1,7 @@
 #include "AstronomyService.hpp"
 #include "Utils.hpp"
+#include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,11 +11,10 @@
 #include <chrono>
 #include <ctime>
 
-AstronomyService::AstronomyService(ConfigService& configService) :
-  config(configService)
+AstronomyService::AstronomyService()
 {
   char workpath[1024];
-  strncpy(workpath, configService.ephemeridesPath().c_str(), 1023);
+  strncpy(workpath, config.ephemeridesPath().c_str(), 1023);
   
   cat_entry dummy_star;
   char ttl[85];

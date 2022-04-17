@@ -10,7 +10,7 @@
 class SolarScene : public Scene
 {
  public:
-    SolarScene(ConfigService& map, AstronomyService& astro);
+    SolarScene(AstronomyService& astro);
     ~SolarScene();
     
     const char* SceneName() override;

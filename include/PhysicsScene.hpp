@@ -7,7 +7,7 @@
 class PhysicsScene : public Scene
 {
  public:
-    PhysicsScene(ConfigService& map);
+    PhysicsScene();
     ~PhysicsScene();
     
     const char* SceneName() override;

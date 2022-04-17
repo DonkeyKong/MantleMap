@@ -1,7 +1,6 @@
 #include "CmdDebugScene.hpp"
 
-CmdDebugScene::CmdDebugScene(ConfigService& map) : Scene(map, SceneType::Overlay, SceneLifetime::Manual),
-    _cmdLabel(map)
+CmdDebugScene::CmdDebugScene() : Scene(SceneType::Overlay, SceneLifetime::Manual)
 {
   _cmdShowCounter = 0;
   _framesToHoldCmd = 60;

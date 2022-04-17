@@ -1,5 +1,7 @@
-#include "Utils.hpp"
 #include "ConfigService.hpp"
+static auto& config = ConfigService::global;
+
+#include "Utils.hpp"
 #include "TimeService.hpp"
 #include "HttpService.hpp"
 #include "AstronomyService.hpp"
@@ -40,7 +42,6 @@ volatile bool internal_exit = false;
 static bool sleeping = false;
 static auto expectedFrameTime = std::chrono::high_resolution_clock::duration::min();
 
-static ConfigService configService;
 static std::vector<Scene*> baseScenes;
 static std::vector<Scene*> overlayScenes;
 
@@ -209,14 +210,14 @@ void setupSystemHttpEndpoints(httplib::Server& srv)
 
         for (auto& kvp : settingsPatch.items())
         {
-            if (!configService.HasKey(kvp.key()))
+            if (!config.HasKey(kvp.key()))
             {
                 res.status = 400;
                 res.body = fmt::format("Bad patch request, settings key {} is invalid.", kvp.key());
                 return;
             }
 
-            if (!configService.ValueTypeMatches(kvp.key(), kvp.value()))
+            if (!config.ValueTypeMatches(kvp.key(), kvp.value()))
             {
                 res.status = 400;
                 res.body = fmt::format("Bad patch request, value {} was an incorrect type.", kvp.key());
@@ -226,14 +227,14 @@ void setupSystemHttpEndpoints(httplib::Server& srv)
 
         for (auto& kvp : settingsPatch.items())
         {
-            configService.SetConfigValue(kvp.key(), kvp.value());
+            config.SetConfigValue(kvp.key(), kvp.value());
         }
     });
 
     srv.Get("/system/settings", [=](const httplib::Request& req, httplib::Response& res) 
     {
         std::stringstream ss;
-        ss << std::setw(4) << configService.GetConfigJson();
+        ss << std::setw(4) << config.GetConfigJson();
         res.body = ss.str();
     });
 
@@ -270,17 +271,17 @@ int main(int argc, char *argv[])
 
     // Init the config service here (since doing it in static init is disallowed)
     // and because lots of components rely on its basic vars being set
-    configService.Init();
+    config.Init();
 
     std::string defaultScene = DEFAULT_SCENE_NAME;
     int fpsLimit = DEFAULT_FPS;
     
     // Subscribe to settings changes (this also runs the lambda once before subscribing)
-    configService.Subscribe([&](std::string setting)
+    config.Subscribe([&](std::string setting)
     {
-        configService.UpdateIfChanged(defaultScene, setting, "defaultScene", DEFAULT_SCENE_NAME);
+        config.UpdateIfChanged(defaultScene, setting, "defaultScene", DEFAULT_SCENE_NAME);
         
-        if (configService.UpdateIfChanged(fpsLimit, setting, "fpsLimit", DEFAULT_FPS))
+        if (config.UpdateIfChanged(fpsLimit, setting, "fpsLimit", DEFAULT_FPS))
         {
             expectedFrameTime = std::chrono::high_resolution_clock::duration(
             std::chrono::nanoseconds((int)(1.0/(double)fpsLimit * 1000000000.0))    );
@@ -288,20 +289,20 @@ int main(int argc, char *argv[])
     });
 
     // Add the HTTP service to serve web requests
-    HttpService httpService(configService);
+    HttpService httpService;
     setupSystemHttpEndpoints(httpService.Server());
 
     // Init the astro / NOVAS lib
-    AstronomyService astronomyService(configService);
+    AstronomyService astronomyService;
 
     // Create the scene library
-    DebugTransformScene debugScene(configService);
-    LightScene lightScene(configService, astronomyService);
-    MapTimeScene mapTimeScene(configService);
-    WeatherScene weatherScene(configService);
-    SolarScene solarScene(configService, astronomyService);
-    ConfigCodeScene configScene(configService, httpService);
-    PhysicsScene physicsScene(configService);
+    DebugTransformScene debugScene;
+    LightScene lightScene(astronomyService);
+    MapTimeScene mapTimeScene;
+    WeatherScene weatherScene;
+    SolarScene solarScene(astronomyService);
+    ConfigCodeScene configScene(httpService);
+    PhysicsScene physicsScene;
 
     addScene(&debugScene, httpService);
     addScene(&solarScene, httpService);
@@ -332,13 +333,13 @@ int main(int argc, char *argv[])
     showScene(0);
 
     // Save the config after opening all the scenes
-    configService.SaveConfig();
+    config.SaveConfig();
 
     // Create our hardware accelerated renderer
-    GLRenderContext render(configService);
+    GLRenderContext render;
 
     // Create the output display device (LED panel, window, etc)
-    DisplayDevice display(configService);
+    DisplayDevice display;
 
     // Connect display events
     display.OnDisconnect.connect([](){internal_exit = true;});
@@ -398,7 +399,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    configService.SaveConfig();
+    config.SaveConfig();
 
     if (interrupt_received)
     {

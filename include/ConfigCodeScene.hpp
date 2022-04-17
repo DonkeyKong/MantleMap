@@ -9,7 +9,7 @@
 class ConfigCodeScene : public Scene
 {
  public:
-    ConfigCodeScene(ConfigService& config, HttpService& http);
+    ConfigCodeScene(HttpService& http);
     ~ConfigCodeScene();
     
     const char* SceneName() override;

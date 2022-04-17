@@ -1,5 +1,7 @@
 #include "WeatherScene.hpp"
 #include "AstronomyService.hpp"
+#include "ConfigService.hpp"
+static auto& config = ConfigService::global;
 
 #include <httplib.h>
 #include <nlohmann/json.hpp>
@@ -42,8 +44,7 @@ static int getStationCurrentTemp(httplib::Client& client, const std::string& sta
   return INVALID_TEMP;
 }
 
-WeatherScene::WeatherScene(ConfigService& config) : Scene(config, SceneType::Overlay, SceneLifetime::Manual),
-  _tempLabel(config)
+WeatherScene::WeatherScene() : Scene(SceneType::Overlay, SceneLifetime::Manual)
 {
   // Add child elements...
   Elements.push_back(&_tempLabel);

@@ -12,7 +12,7 @@
 class PolyLine : public SceneElement
 {
  public:
-    PolyLine(ConfigService&);
+    PolyLine();
     virtual ~PolyLine();
 
     void SetPoints(const std::vector<Vertex>& points);
