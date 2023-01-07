@@ -22,7 +22,6 @@ using rgb_matrix::StreamReader;
 
 struct DisplayDevice::Impl
 {
-    ConfigService& config;
     RGBMatrix* matrix;
     FrameCanvas* offscreen_canvas;
     ImageRGBA CPUTextureCache;
@@ -88,9 +87,9 @@ struct DisplayDevice::Impl
     }
 };
 
-DisplayDevice::DisplayDevice(ConfigService& config)
+DisplayDevice::DisplayDevice()
 {
-    pImpl_ = std::make_unique<Impl>(config);
+    pImpl_ = std::make_unique<Impl>();
 }
 
 DisplayDevice::~DisplayDevice()

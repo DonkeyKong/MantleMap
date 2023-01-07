@@ -9,7 +9,6 @@ attribute float aPointSize;
 attribute vec4 aColor;
 varying vec4 vColor;
 
-
 void main(void)
 {
   vColor = aColor;

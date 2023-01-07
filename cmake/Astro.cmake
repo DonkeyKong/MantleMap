@@ -2,8 +2,9 @@ include(ExternalProject)
 
 find_program(MAKE_EXECUTABLE NAMES gmake make mingw32-make REQUIRED)
 
+set(NOVAS_CDIST novasc3.1)
 set(ephutil_LIBRARY ${PROJECT_SOURCE_DIR}/deps/astro/ephutil/ephutil${CMAKE_STATIC_LIBRARY_SUFFIX})
-set(novas_LIBRARY ${PROJECT_SOURCE_DIR}/deps/astro/Cdist/novas${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(novas_LIBRARY ${PROJECT_SOURCE_DIR}/deps/astro/${NOVAS_CDIST}/novas${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(novas_EPHEMERIDES ${PROJECT_SOURCE_DIR}/deps/astro/linux_p1550p2650.430)
 
 ExternalProject_Add(astro_build
@@ -15,11 +16,11 @@ ExternalProject_Add(astro_build
                     cp ${novas_LIBRARY} ${CMAKE_BINARY_DIR}/deps/astro/lib/ &&
                     cp ${ephutil_LIBRARY} ${CMAKE_BINARY_DIR}/deps/astro/lib/ &&
                     mkdir -p ${CMAKE_BINARY_DIR}/deps/astro/include &&
-                    cp ${PROJECT_SOURCE_DIR}/deps/astro/Cdist/novas.h ${CMAKE_BINARY_DIR}/deps/astro/include/ &&
-                    cp ${PROJECT_SOURCE_DIR}/deps/astro/Cdist/novascon.h ${CMAKE_BINARY_DIR}/deps/astro/include/ &&
-                    cp ${PROJECT_SOURCE_DIR}/deps/astro/Cdist/solarsystem.h ${CMAKE_BINARY_DIR}/deps/astro/include/ &&
-                    cp ${PROJECT_SOURCE_DIR}/deps/astro/Cdist/nutation.h ${CMAKE_BINARY_DIR}/deps/astro/include/ &&
-                    cp ${PROJECT_SOURCE_DIR}/deps/astro/Cdist/eph_manager.h ${CMAKE_BINARY_DIR}/deps/astro/include/ &&
+                    cp ${PROJECT_SOURCE_DIR}/deps/astro/${NOVAS_CDIST}/novas.h ${CMAKE_BINARY_DIR}/deps/astro/include/ &&
+                    cp ${PROJECT_SOURCE_DIR}/deps/astro/${NOVAS_CDIST}/novascon.h ${CMAKE_BINARY_DIR}/deps/astro/include/ &&
+                    cp ${PROJECT_SOURCE_DIR}/deps/astro/${NOVAS_CDIST}/solarsystem.h ${CMAKE_BINARY_DIR}/deps/astro/include/ &&
+                    cp ${PROJECT_SOURCE_DIR}/deps/astro/${NOVAS_CDIST}/nutation.h ${CMAKE_BINARY_DIR}/deps/astro/include/ &&
+                    cp ${PROJECT_SOURCE_DIR}/deps/astro/${NOVAS_CDIST}/eph_manager.h ${CMAKE_BINARY_DIR}/deps/astro/include/ &&
                     cp ${PROJECT_SOURCE_DIR}/deps/astro/ephutil/ephutil.h ${CMAKE_BINARY_DIR}/deps/astro/include/
                     
     BUILD_BYPRODUCTS ${ephutil_LIBRARY} ${novas_LIBRARY} ${novas_EPHEMERIDES}
