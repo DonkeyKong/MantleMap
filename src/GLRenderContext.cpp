@@ -126,13 +126,13 @@ void GLRenderContext::initGL()
 
   eglMakeCurrent (GDisplay, GSurface, GSurface, GContext);
 
-	// Get info about the API
-	std::cout << "Initializing OpenGL..." << std::endl;
-	std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
-	std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
-	std::cout << "Version: " << glGetString(GL_VERSION) << std::endl;
-	std::cout << "Shading Language Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-	std::cout << "Supported Extensions: " << glGetString(GL_EXTENSIONS) << std::endl << std::flush;
+	// // Get info about the API
+	// std::cout << "Initializing OpenGL..." << std::endl;
+	// std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
+	// std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
+	// std::cout << "Version: " << glGetString(GL_VERSION) << std::endl;
+	// std::cout << "Shading Language Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+	// std::cout << "Supported Extensions: " << glGetString(GL_EXTENSIONS) << std::endl << std::flush;
 
 	// Construct our render buffer
   FramebufferName = 0;
